@@ -128,8 +128,7 @@ fun GitAppTheme(
                 )
             }
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxSize()
             ) {
                 MaterialTheme(
                     colorScheme = colorScheme,
