@@ -45,7 +45,7 @@ fun StageScreen() {
             OutlinedTextField(
                 value = repoPath,
                 onValueChange = { repoPath = it },
-                label = { Text("Repository Path") },
+                label = { Text(stringResource(id = R.string.local_path)) },
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             )
             Button(
@@ -56,7 +56,7 @@ fun StageScreen() {
             OutlinedTextField(
                 value = commitMessage,
                 onValueChange = { commitMessage = it },
-                label = { Text("Commit Message") },
+                label = { Text(stringResource(id = R.string.commit_message)) },
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -67,7 +67,7 @@ fun StageScreen() {
                 Button(
                     onClick = { viewModel.addAll(repoPath) },
                     modifier = Modifier.weight(1f)
-                ) { Text("Stage All") }
+                ) { Text(stringResource(id = R.string.stage_all)) }
                 OutlinedButton(
                     onClick = { viewModel.commit(repoPath, commitMessage) },
                     modifier = Modifier.weight(1f)
@@ -83,7 +83,7 @@ fun StageScreen() {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
-                ) { Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error) }
+                ) { Text(context.getString(R.string.error, uiState.error), color = MaterialTheme.colorScheme.error) }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -92,7 +92,7 @@ fun StageScreen() {
                     if (uiState.stagedFiles.isNotEmpty()) {
                         item {
                             Text(
-                                text = "Staged (${uiState.stagedFiles.size})",
+                                text = "${stringResource(id = R.string.staged_files)} (${uiState.stagedFiles.size})",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -105,7 +105,7 @@ fun StageScreen() {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Modified (${uiState.modifiedFiles.size})",
+                                text = "${stringResource(id = R.string.modified_files)} (${uiState.modifiedFiles.size})",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -118,7 +118,7 @@ fun StageScreen() {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Untracked (${uiState.untrackedFiles.size})",
+                                text = "${stringResource(id = R.string.untracked_files)} (${uiState.untrackedFiles.size})",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -132,7 +132,7 @@ fun StageScreen() {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
-                            ) { Text("No changes") }
+                            ) { Text(stringResource(id = R.string.no_changes)) }
                         }
                     }
                 }

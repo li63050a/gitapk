@@ -66,7 +66,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 }
             } else if (uiState.error != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error)
+                    Text(context.getString(R.string.error, uiState.error), color = MaterialTheme.colorScheme.error)
                 }
             } else {
                 LazyColumn(
@@ -121,40 +121,40 @@ fun AddRepoDialog(onDismiss: () -> Unit, onClone: (String, String) -> Unit, onIn
     var selectedTab by remember { mutableStateOf(0) }
     var url by remember { mutableStateOf("") }
     var localPath by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Add Repository") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(id = R.string.add_repo)) }, text = {
         Column {
             TabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Clone") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Init") })
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(stringResource(id = R.string.clone)) })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text(stringResource(id = R.string.init)) })
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (selectedTab == 0) {
-                OutlinedTextField(value = url, onValueChange = { url = it }, label = { Text("Repository URL") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = url, onValueChange = { url = it }, label = { Text(stringResource(id = R.string.repo_url)) }, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = localPath, onValueChange = { localPath = it }, label = { Text("Local Path") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = localPath, onValueChange = { localPath = it }, label = { Text(stringResource(id = R.string.local_path)) }, modifier = Modifier.fillMaxWidth())
             } else {
-                OutlinedTextField(value = localPath, onValueChange = { localPath = it }, label = { Text("Directory Path") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = localPath, onValueChange = { localPath = it }, label = { Text(stringResource(id = R.string.dir_path)) }, modifier = Modifier.fillMaxWidth())
             }
         }
     }, confirmButton = {
         Button(onClick = { if (selectedTab == 0 && url.isNotEmpty()) onClone(url, localPath) else if (selectedTab == 1 && localPath.isNotEmpty()) onInit(localPath) }) {
-            Text("Add")
+            Text(stringResource(id = R.string.add))
         }
-    }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } })
+    }, dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) } })
 }
 
 @Composable
 fun BatchOperationDialog(repos: List<com.git.app.git.RepoInfo>, onDismiss: () -> Unit, onPull: (List<String>) -> Unit, onPush: (List<String>) -> Unit, onFetch: (List<String>) -> Unit) {
     var selectedRepos by remember { mutableStateOf<Set<String>>(emptySet()) }
     var operation by remember { mutableStateOf("pull") }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Batch Operation") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(id = R.string.batch_operation)) }, text = {
         Column {
             Row {
-                FilterChip(selected = operation == "pull", onClick = { operation = "pull" }, label = { Text("Pull") })
+                FilterChip(selected = operation == "pull", onClick = { operation = "pull" }, label = { Text(stringResource(id = R.string.pull)) })
                 Spacer(modifier = Modifier.width(8.dp))
-                FilterChip(selected = operation == "push", onClick = { operation = "push" }, label = { Text("Push") })
+                FilterChip(selected = operation == "push", onClick = { operation = "push" }, label = { Text(stringResource(id = R.string.push)) })
                 Spacer(modifier = Modifier.width(8.dp))
-                FilterChip(selected = operation == "fetch", onClick = { operation = "fetch" }, label = { Text("Fetch") })
+                FilterChip(selected = operation == "fetch", onClick = { operation = "fetch" }, label = { Text(stringResource(id = R.string.fetch)) })
             }
             Spacer(modifier = Modifier.height(8.dp))
             repos.forEach { repo ->
@@ -182,6 +182,6 @@ fun BatchOperationDialog(repos: List<com.git.app.git.RepoInfo>, onDismiss: () ->
                 "push" -> onPush(paths)
                 "fetch" -> onFetch(paths)
             }
-        }) { Text("Execute") }
-    }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } })
+        }) { Text(stringResource(id = R.string.execute)) }
+    }, dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) } })
 }

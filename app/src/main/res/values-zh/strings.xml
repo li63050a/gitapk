@@ -75,4 +75,23 @@
     <string name="realtime_refresh">实时刷新</string>
     <string name="auto_refresh">自动刷新</string>
     <string name="refresh_interval">刷新间隔</string>
+    <string name="error">错误：%s</string>
+    <string name="clear_logs">清空日志</string>
+    <string name="close">关闭</string>
+    <string name="share">分享</string>
+    <string name="back">返回</string>
+    <string name="all">全部</string>
+    <string name="debug_level">调试</string>
+    <string name="info_level">信息</string>
+    <string name="warn_level">警告</string>
+    <string name="error_level">错误</string>
+    <string name="crash_logs">崩溃日志</string>
+    <string name="running_logs">运行日志</string>
+    <string name="no_logs">暂无日志</string>
+    <string name="confirm_clear_logs">确定要清空所有日志吗？此操作不可恢复。</string>
+    <string name="read_failed">读取失败</string>
+    <string name="no_logs_export">暂无日志可导出</string>
+    <string name="logs_exported">已导出 %d 条日志</string>
+    <string name="share_failed">分享失败：%s</string>
+    <string name="export_failed">导出失败：%s</string>
 </resources>

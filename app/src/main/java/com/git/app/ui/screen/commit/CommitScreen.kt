@@ -41,25 +41,25 @@ fun CommitScreen() {
         } else {
             Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                 if (isSearching) {
-                    OutlinedTextField(value = searchQuery, onValueChange = { searchQuery = it }, label = { Text("Search commits...") }, modifier = Modifier.fillMaxWidth().padding(16.dp), trailingIcon = {
+                    OutlinedTextField(value = searchQuery, onValueChange = { searchQuery = it }, label = { Text(stringResource(id = R.string.search_commits_hint)) }, modifier = Modifier.fillMaxWidth().padding(16.dp), trailingIcon = {
                         IconButton(onClick = { isSearching = false; searchQuery = "" }) { Icon(Icons.Default.ArrowBack, contentDescription = null) }
                     })
                 } else {
-                    OutlinedTextField(value = repoPath, onValueChange = { repoPath = it }, label = { Text("Repository Path") }, modifier = Modifier.fillMaxWidth().padding(16.dp))
+                    OutlinedTextField(value = repoPath, onValueChange = { repoPath = it }, label = { Text(stringResource(id = R.string.local_path)) }, modifier = Modifier.fillMaxWidth().padding(16.dp))
                     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                         Button(onClick = { viewModel.loadCommits(repoPath) }, modifier = Modifier.weight(1f)) { Text(stringResource(id = R.string.load)) }
                         Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(onClick = { isSearching = true }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, contentDescription = null); Spacer(modifier = Modifier.width(4.dp)); Text("Search") }
+                        OutlinedButton(onClick = { isSearching = true }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, contentDescription = null); Spacer(modifier = Modifier.width(4.dp)); Text(stringResource(id = R.string.search)) }
                     }
                     if (searchQuery.isNotEmpty()) {
-                        Button(onClick = { viewModel.searchCommits(repoPath, searchQuery) }, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) { Text("Search: $searchQuery") }
+                        Button(onClick = { viewModel.searchCommits(repoPath, searchQuery) }, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) { Text("${stringResource(id = R.string.search)}: $searchQuery") }
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 if (uiState.isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 } else if (uiState.error != null) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error) }
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(context.getString(R.string.error, uiState.error), color = MaterialTheme.colorScheme.error) }
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
                         items(uiState.commits) { commit ->
@@ -75,7 +75,7 @@ fun CommitScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommitDetailScreen(commit: com.git.app.git.CommitDetail, onBack: () -> Unit) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Commit Detail") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = null) } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(id = R.string.commit_detail)) }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = null) } }) }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             Text(text = commit.commit.shortId, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(4.dp))
@@ -84,14 +84,14 @@ fun CommitDetailScreen(commit: com.git.app.git.CommitDetail, onBack: () -> Unit)
             Text(text = commit.commit.message, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(16.dp))
             if (commit.files.isNotEmpty()) {
-                Text(text = "Files (${commit.files.size})", style = MaterialTheme.typography.titleSmall)
+                Text(text = "${stringResource(id = R.string.files)} (${commit.files.size})", style = MaterialTheme.typography.titleSmall)
                 commit.files.forEach { file ->
                     Text(text = "${file.status}: ${file.path} (+${file.additions}/-${file.deletions})", style = MaterialTheme.typography.bodySmall)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
             if (commit.diff.isNotEmpty()) {
-                Text(text = "Diff", style = MaterialTheme.typography.titleSmall)
+                Text(text = stringResource(id = R.string.diff), style = MaterialTheme.typography.titleSmall)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = commit.diff, style = MaterialTheme.typography.bodySmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
             }

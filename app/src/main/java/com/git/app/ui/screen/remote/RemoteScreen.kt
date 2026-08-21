@@ -31,7 +31,7 @@ fun RemoteScreen() {
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(id = R.string.remote)) }) }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(value = repoPath, onValueChange = { repoPath = it }, label = { Text("Repository Path") }, modifier = Modifier.fillMaxWidth().padding(16.dp))
+            OutlinedTextField(value = repoPath, onValueChange = { repoPath = it }, label = { Text(stringResource(id = R.string.local_path)) }, modifier = Modifier.fillMaxWidth().padding(16.dp))
             Button(onClick = { viewModel.loadRemotes(repoPath) }, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) { Text(stringResource(id = R.string.reload)) }
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -46,7 +46,7 @@ fun RemoteScreen() {
                 }
             }
             uiState.lastAction?.let { Text(text = it, modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
-            uiState.error?.let { Text(text = "Error: $it", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+            uiState.error?.let { Text(text = context.getString(R.string.error, it), modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
             Spacer(modifier = Modifier.height(8.dp))
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

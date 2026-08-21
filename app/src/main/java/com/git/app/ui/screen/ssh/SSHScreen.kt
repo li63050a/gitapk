@@ -31,7 +31,7 @@ fun SSHScreen() {
     LaunchedEffect(Unit) { viewModel.loadKeys() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("SSH Keys") }) },
+        topBar = { TopAppBar(title = { Text(stringResource(id = R.string.ssh_keys)) }) },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Key, contentDescription = null)
@@ -45,11 +45,11 @@ fun SSHScreen() {
                 }
             } else if (uiState.error != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error)
+                    Text(context.getString(R.string.error, uiState.error), color = MaterialTheme.colorScheme.error)
                 }
             } else if (uiState.keys.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No SSH keys found")
+                    Text(stringResource(id = R.string.no_ssh_keys))
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
@@ -115,20 +115,20 @@ fun AddSSHKeyDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add SSH Key") },
+        title = { Text(stringResource(id = R.string.add_ssh_key)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = keyName,
                     onValueChange = onKeyNameChange,
-                    label = { Text("Key Name") },
+                    label = { Text(stringResource(id = R.string.key_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = keyContent,
                     onValueChange = onKeyContentChange,
-                    label = { Text("Key Content (-----BEGIN...-----)") },
+                    label = { Text(stringResource(id = R.string.key_content)) },
                     modifier = Modifier.fillMaxWidth().height(150.dp),
                     maxLines = 10
                 )
@@ -137,10 +137,10 @@ fun AddSSHKeyDialog(
         confirmButton = {
             Button(
                 onClick = { if (keyName.isNotEmpty() && keyContent.isNotEmpty()) onAdd(keyName, keyContent) }
-            ) { Text("Add") }
+            ) { Text(stringResource(id = R.string.add)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) }
         }
     )
 }

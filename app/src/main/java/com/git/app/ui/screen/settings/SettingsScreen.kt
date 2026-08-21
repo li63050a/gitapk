@@ -27,7 +27,7 @@ import com.git.app.data.AppLanguage
 import com.git.app.data.BgPreset
 import com.git.app.data.SettingsRepository
 import com.git.app.data.ThemeMode
-import java.util.Locale
+import com.git.app.applyLanguage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +62,7 @@ fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
     LaunchedEffect(themeMode) { SettingsRepository.setThemeMode(context, themeMode) }
     LaunchedEffect(bgPreset) { SettingsRepository.setBgPreset(context, bgPreset) }
     LaunchedEffect(accentPreset) { SettingsRepository.setAccentPreset(context, accentPreset) }
-    LaunchedEffect(language) { 
+    LaunchedEffect(language) {
         SettingsRepository.setLanguage(context, language)
         applyLanguage(context, language)
     }
@@ -194,14 +194,6 @@ fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
             }
         }
     }
-}
-
-fun applyLanguage(context: Context, language: AppLanguage) {
-    val tag = language.tag
-    val locale = if (tag != null) Locale(tag) else Locale.getDefault()
-    val config = context.resources.configuration
-    config.setLocale(locale)
-    context.createConfigurationContext(config)
 }
 
 @Composable

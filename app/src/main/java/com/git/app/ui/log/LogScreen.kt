@@ -151,7 +151,7 @@ fun LogScreen(onBack: () -> Unit) {
         val crash = crashDialog ?: return@LaunchedEffect
         crashContent = null
         crashContent = withContext(Dispatchers.IO) {
-            runCatching { crash.file.readText() }.getOrDefault("读取失败")
+            runCatching { crash.file.readText() }.getOrDefault(context.getString(R.string.read_failed))
         }
     }
 
@@ -168,7 +168,7 @@ fun LogScreen(onBack: () -> Unit) {
 
     fun exportCurrent() {
         if (visible.isEmpty()) {
-            scope.launch { snackbar.showSnackbar("暂无日志可导出") }
+            scope.launch { snackbar.showSnackbar(context.getString(R.string.no_logs_export)) }
             return
         }
         scope.launch {
@@ -182,14 +182,14 @@ fun LogScreen(onBack: () -> Unit) {
             }
             result.onSuccess { file ->
                 runCatching { shareTextFile(context, file, "text/plain", "分享日志") }
-                    .onSuccess { snackbar.showSnackbar("已导出 ${visible.size} 条日志") }
+                    .onSuccess { snackbar.showSnackbar(context.getString(R.string.logs_exported, visible.size)) }
                     .onFailure { e ->
                         Log.e("LogScreen", "分享失败", e)
-                        snackbar.showSnackbar("分享失败: ${e.message}")
+                        snackbar.showSnackbar(context.getString(R.string.share_failed, e.message ?: ""))
                     }
             }.onFailure { e ->
                 Log.e("LogScreen", "导出失败", e)
-                snackbar.showSnackbar("导出失败: ${e.message}")
+                snackbar.showSnackbar(context.getString(R.string.export_failed, e.message ?: ""))
             }
         }
     }
@@ -197,18 +197,18 @@ fun LogScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("日志") },
+                title = { Text(stringResource(id = R.string.log)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { exportCurrent() }) {
-                        Icon(Icons.Filled.Share, "分享")
+                        Icon(Icons.Filled.Share, stringResource(id = R.string.share))
                     }
                     IconButton(onClick = { showClearDialog = true }) {
-                        Icon(Icons.Filled.DeleteSweep, "清空")
+                        Icon(Icons.Filled.DeleteSweep, stringResource(id = R.string.clear_logs))
                     }
                 }
             )
@@ -228,7 +228,7 @@ fun LogScreen(onBack: () -> Unit) {
                     FilterChip(
                         selected = filter == f,
                         onClick = { filter = f },
-                        label = { Text(f?.let { levelText(it) } ?: "全部") }
+                        label = { Text(f?.let { levelText(it) } ?: stringResource(id = R.string.all)) }
                     )
                 }
             }
@@ -240,7 +240,7 @@ fun LogScreen(onBack: () -> Unit) {
                 if (crashLogs.isNotEmpty()) {
                     item(key = "crash_header") {
                         Text(
-                            "崩溃日志",
+                            stringResource(id = R.string.crash_logs),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.error,
@@ -256,7 +256,7 @@ fun LogScreen(onBack: () -> Unit) {
                 }
                 item(key = "log_header") {
                     Text(
-                        "运行日志",
+                        stringResource(id = R.string.running_logs),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -265,7 +265,7 @@ fun LogScreen(onBack: () -> Unit) {
                 if (visible.isEmpty()) {
                     item(key = "empty") {
                         Text(
-                            "暂无日志",
+                            stringResource(id = R.string.no_logs),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -303,16 +303,16 @@ fun LogScreen(onBack: () -> Unit) {
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("清空日志") },
-            text = { Text("确定要清空所有日志吗？此操作不可恢复。") },
+            title = { Text(stringResource(id = R.string.clear_logs)) },
+            text = { Text(stringResource(id = R.string.confirm_clear_logs)) },
             confirmButton = {
                 TextButton(onClick = {
                     Log.clear()
                     showClearDialog = false
-                }) { Text("清空") }
+                }) { Text(stringResource(id = R.string.clear_logs)) }
             },
             dismissButton = {
-                TextButton(onClick = { showClearDialog = false }) { Text("取消") }
+                TextButton(onClick = { showClearDialog = false }) { Text(stringResource(id = R.string.cancel)) }
             }
         )
     }
@@ -347,16 +347,16 @@ fun LogScreen(onBack: () -> Unit) {
                 TextButton(onClick = {
                     crashDialog = null
                     crashContent = null
-                }) { Text("关闭") }
+                }) { Text(stringResource(id = R.string.close)) }
             },
             dismissButton = {
                 TextButton(onClick = {
-                    runCatching { shareTextFile(context, crash.file, "text/plain", "分享崩溃日志") }
+                    runCatching { shareTextFile(context, crash.file, "text/plain", context.getString(R.string.share)) }
                         .onFailure { e ->
                             Log.e("LogScreen", "分享崩溃日志失败", e)
-                            scope.launch { snackbar.showSnackbar("分享失败: ${e.message}") }
+                            scope.launch { snackbar.showSnackbar(context.getString(R.string.error, e.message ?: "")) }
                         }
-                }) { Text("分享") }
+                }) { Text(stringResource(id = R.string.share)) }
             }
         )
     }

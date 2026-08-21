@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
 fun applyLanguage(context: Context, language: AppLanguage) {
     val tag = language.tag
     val locale = if (tag != null) Locale(tag) else Locale.getDefault()
+    Locale.setDefault(locale)
     val config = context.resources.configuration
     config.setLocale(locale)
     context.createConfigurationContext(config)
