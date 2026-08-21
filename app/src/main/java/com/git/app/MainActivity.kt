@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,10 +27,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.view.WindowCompat
+import android.content.pm.PackageManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -57,6 +63,27 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val repoManager = remember { RepoManager() }
                 var drawerOpen by remember { mutableStateOf(false) }
+                val context = LocalContext.current
+                
+                // Request storage permissions
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestMultiplePermissions()
+                ) { permissions ->
+                    val allGranted = permissions.values.all { it }
+                    if (!allGranted) {
+                        // Permission denied - user won't be able to access repositories
+                    }
+                }
+                
+                LaunchedEffect(Unit) {
+                    val required = PermissionHelper.getRequiredPermissions()
+                    val needsRequest = required.any { perm ->
+                        ContextCompat.checkSelfPermission(context, perm) != PackageManager.PERMISSION_GRANTED
+                    }
+                    if (needsRequest) {
+                        permissionLauncher.launch(required)
+                    }
+                }
                 
                 LaunchedEffect(uiState.repos) {
                     repoManager.refreshRepos(uiState.repos)
