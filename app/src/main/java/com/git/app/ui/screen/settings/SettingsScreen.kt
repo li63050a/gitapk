@@ -68,8 +68,18 @@ fun SettingsScreen() {
     }
     LaunchedEffect(customBgPath) { SettingsRepository.setCustomBg(context, customBgPath) }
 
+    var versionName by remember { mutableStateOf("0.0.0.1") }
+
+    LaunchedEffect(Unit) {
+        try {
+            versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0.1"
+        } catch (e: Exception) {
+            versionName = "0.0.0.1"
+        }
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(context.getString(R.string.settings)) }) }
+        topBar = { TopAppBar(title = { Text(stringResource(id = R.string.settings)) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -157,12 +167,7 @@ fun SettingsScreen() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(text = context.getString(R.string.version), style = MaterialTheme.typography.bodyMedium)
-                                try {
-                                    val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                                    Text(text = versionName ?: "unknown", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                } catch (e: Exception) {
-                                    Text(text = "0.0.0.1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
+                                Text(text = versionName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
