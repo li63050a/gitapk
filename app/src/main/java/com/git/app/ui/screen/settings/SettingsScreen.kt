@@ -157,7 +157,7 @@ fun SettingsScreen() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(text = context.getString(R.string.version), style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "0.0.0.2", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = "0.0.0.1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
