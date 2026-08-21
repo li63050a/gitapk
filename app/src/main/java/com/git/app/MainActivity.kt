@@ -135,16 +135,7 @@ fun DrawerOverlay(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            if (awaitPointerEvent().changes.any { it.pressed }) {
-                                break
-                            }
-                        }
-                        onDismiss()
-                    }
-                }
+                .clickable { onDismiss() }
         )
         
         // Drawer content
