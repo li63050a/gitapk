@@ -75,4 +75,6 @@
     <string name="realtime_refresh">Real-time Refresh</string>
     <string name="auto_refresh">Auto Refresh</string>
     <string name="refresh_interval">Refresh Interval</string>
+    <string name="settings_log">Log</string>
+    <string name="log">Log</string>
 </resources>

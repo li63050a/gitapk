@@ -11,6 +11,7 @@ import com.git.app.ui.screen.remote.RemoteScreen
 import com.git.app.ui.screen.settings.SettingsScreen
 import com.git.app.ui.screen.ssh.SSHScreen
 import com.git.app.ui.screen.stage.StageScreen
+import com.git.app.ui.log.LogScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -20,6 +21,7 @@ sealed class Screen(val route: String) {
     data object Stage : Screen("stage")
     data object SSH : Screen("ssh")
     data object Settings : Screen("settings")
+    data object Log : Screen("log")
 }
 
 @Composable
@@ -31,6 +33,7 @@ fun GitNavGraph(navController: androidx.navigation.NavHostController = rememberN
         composable(Screen.Remote.route) { RemoteScreen() }
         composable(Screen.Stage.route) { StageScreen() }
         composable(Screen.SSH.route) { SSHScreen() }
-        composable(Screen.Settings.route) { SettingsScreen() }
+        composable(Screen.Settings.route) { SettingsScreen(onNavigateToLog = { navController.navigate(Screen.Log.route) }) }
+        composable(Screen.Log.route) { LogScreen(onBack = { navController.popBackStack() }) }
     }
 }

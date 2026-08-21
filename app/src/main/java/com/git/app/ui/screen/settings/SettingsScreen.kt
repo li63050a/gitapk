@@ -31,7 +31,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
     val context = LocalContext.current
     val settings by SettingsRepository.getSettings(context).collectAsState(
         initial = com.git.app.data.UiSettings()
@@ -142,6 +142,29 @@ fun SettingsScreen() {
                             Icon(Icons.Default.Key, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = context.getString(R.string.ssh_keys), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = context.getString(R.string.settings_log),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable { onNavigateToLog() },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = context.getString(R.string.log), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
