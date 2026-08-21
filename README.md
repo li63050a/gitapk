@@ -30,7 +30,7 @@ Git 工具 (Git Tool)
 `com.git.app`
 
 ### 版本
-`0.0.0.2` (versionCode: 2)
+`0.0.0.1` (versionCode: 1)
 
 ### 目标平台
 Android 6.0 (API 23) 及以上
@@ -499,7 +499,7 @@ fun applyLanguage(context: Context, language: AppLanguage) {
 | 编译 SDK | 34 (Android 14) |
 | ABI 过滤 | arm64-v8a, armeabi-v7a, x86, x86_64 |
 | APK 大小 | ~18 MB |
-| 版本 | 0.0.0.2 |
+| 版本 | 0.0.0.1 |
 | GitHub | https://github.com/li63050a/gitapk |
 
 ---
