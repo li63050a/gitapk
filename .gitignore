@@ -12,3 +12,4 @@ app/build/
 .DS_Store
 local.properties
 .gradle/
+.fuse_hidden*
