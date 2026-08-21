@@ -157,7 +157,12 @@ fun SettingsScreen() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(text = context.getString(R.string.version), style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "0.0.0.1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                try {
+                                    val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+                                    Text(text = versionName ?: "unknown", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                } catch (e: Exception) {
+                                    Text(text = "0.0.0.1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
                         }
                     }
