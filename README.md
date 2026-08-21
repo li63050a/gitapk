@@ -29,9 +29,6 @@ Git 工具 (Git Tool)
 ### 包名
 `com.git.app`
 
-### 版本
-`0.0.0.1` (versionCode: 1)
-
 ### 目标平台
 Android 6.0 (API 23) 及以上
 
