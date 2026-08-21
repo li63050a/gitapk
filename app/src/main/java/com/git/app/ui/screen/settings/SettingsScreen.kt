@@ -68,14 +68,11 @@ fun SettingsScreen() {
     }
     LaunchedEffect(customBgPath) { SettingsRepository.setCustomBg(context, customBgPath) }
 
-    var versionName by remember { mutableStateOf("0.0.0.1") }
-
-    LaunchedEffect(Unit) {
-        try {
-            versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0.1"
-        } catch (e: Exception) {
-            versionName = "0.0.0.1"
-        }
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0.1"
+        }.getOrElse { "0.0.0.1" }
     }
 
     Scaffold(
