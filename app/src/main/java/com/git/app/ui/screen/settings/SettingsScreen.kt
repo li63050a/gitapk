@@ -68,7 +68,6 @@ fun SettingsScreen() {
     }
     LaunchedEffect(customBgPath) { SettingsRepository.setCustomBg(context, customBgPath) }
 
-    val context = LocalContext.current
     val versionName = remember(context) {
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0.1"
