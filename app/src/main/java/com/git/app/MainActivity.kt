@@ -19,6 +19,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 首次启动强制使用中文
         applyLanguage(this, AppLanguage.ZH)
         enableEdgeToEdge()
         setContent {
