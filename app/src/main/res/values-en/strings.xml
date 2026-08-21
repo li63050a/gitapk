@@ -105,4 +105,10 @@
     <string name="logs_exported">Exported %d logs</string>
     <string name="share_failed">Share failed: %s</string>
     <string name="export_failed">Export failed: %s</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_commits">Commits</string>
+    <string name="nav_stage">Stage</string>
+    <string name="nav_branch">Branches</string>
+    <string name="nav_remote">Remote</string>
+    <string name="nav_settings">Settings</string>
 </resources>

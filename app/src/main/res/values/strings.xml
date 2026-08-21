@@ -105,4 +105,10 @@
     <string name="logs_exported">已导出 %d 条日志</string>
     <string name="share_failed">分享失败：%s</string>
     <string name="export_failed">导出失败：%s</string>
+    <string name="nav_home">首页</string>
+    <string name="nav_commits">提交</string>
+    <string name="nav_stage">暂存</string>
+    <string name="nav_branch">分支</string>
+    <string name="nav_remote">远程</string>
+    <string name="nav_settings">设置</string>
 </resources>
