@@ -1,0 +1,36 @@
+package com.example.git.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.git.ui.screen.branch.BranchScreen
+import com.example.git.ui.screen.commit.CommitScreen
+import com.example.git.ui.screen.home.HomeScreen
+import com.example.git.ui.screen.remote.RemoteScreen
+import com.example.git.ui.screen.settings.SettingsScreen
+import com.example.git.ui.screen.ssh.SSHScreen
+import com.example.git.ui.screen.stage.StageScreen
+
+sealed class Screen(val route: String) {
+    data object Home : Screen("home")
+    data object Commit : Screen("commit")
+    data object Branch : Screen("branch")
+    data object Remote : Screen("remote")
+    data object Stage : Screen("stage")
+    data object SSH : Screen("ssh")
+    data object Settings : Screen("settings")
+}
+
+@Composable
+fun GitNavGraph(navController: androidx.navigation.NavHostController = rememberNavController()) {
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
+        composable(Screen.Home.route) { HomeScreen(onNavigate = { route -> navController.navigate(route) }) }
+        composable(Screen.Commit.route) { CommitScreen() }
+        composable(Screen.Branch.route) { BranchScreen() }
+        composable(Screen.Remote.route) { RemoteScreen() }
+        composable(Screen.Stage.route) { StageScreen() }
+        composable(Screen.SSH.route) { SSHScreen() }
+        composable(Screen.Settings.route) { SettingsScreen() }
+    }
+}
