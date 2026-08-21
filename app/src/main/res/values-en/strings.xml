@@ -111,4 +111,7 @@
     <string name="nav_branch">Branches</string>
     <string name="nav_remote">Remote</string>
     <string name="nav_settings">Settings</string>
+    <string name="no_repos">No repositories</string>
+    <string name="no_repos_hint">Tap the button below to add a new repository</string>
+    <string name="repos">repositories</string>
 </resources>

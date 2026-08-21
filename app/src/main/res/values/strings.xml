@@ -111,4 +111,7 @@
     <string name="nav_branch">分支</string>
     <string name="nav_remote">远程</string>
     <string name="nav_settings">设置</string>
+    <string name="no_repos">暂无仓库</string>
+    <string name="no_repos_hint">点击下方按钮添加新仓库</string>
+    <string name="repos">个仓库</string>
 </resources>

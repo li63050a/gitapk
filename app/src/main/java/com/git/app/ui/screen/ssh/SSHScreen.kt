@@ -6,16 +6,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.git.app.R
 import com.git.app.vm.SSHViewModel
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,31 +29,58 @@ fun SSHScreen() {
     var keyName by remember { mutableStateOf("") }
     var keyContent by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) { viewModel.loadKeys() }
+    LaunchedEffect(Unit) {
+        viewModel.loadKeys()
+    }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(id = R.string.ssh_keys)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.ssh_keys)) },
+                actions = {
+                    IconButton(onClick = { viewModel.loadKeys() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = null)
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Key, contentDescription = null)
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when {
+            uiState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else if (uiState.error != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(context.getString(R.string.error, uiState.error), color = MaterialTheme.colorScheme.error)
+            }
+            uiState.error != null -> {
+                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = context.getString(R.string.error, uiState.error),
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Button(onClick = { viewModel.loadKeys() }) {
+                            Text(stringResource(id = R.string.reload))
+                        }
+                    }
                 }
-            } else if (uiState.keys.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            }
+            uiState.keys.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     Text(stringResource(id = R.string.no_ssh_keys))
                 }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(uiState.keys) { key ->
                         SSHKeyCard(key = key, onDelete = { viewModel.deleteKey(key.name) })
                     }
@@ -75,10 +103,7 @@ fun SSHScreen() {
 
 @Composable
 fun SSHKeyCard(key: com.git.app.git.SSHKey, onDelete: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -87,7 +112,11 @@ fun SSHKeyCard(key: com.git.app.git.SSHKey, onDelete: () -> Unit) {
             ) {
                 Column {
                     Text(text = key.name, style = MaterialTheme.typography.titleMedium)
-                    Text(text = "${key.type} · ${key.createdTime}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "${key.type} · ${key.createdTime}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
@@ -136,11 +165,16 @@ fun AddSSHKeyDialog(
         },
         confirmButton = {
             Button(
-                onClick = { if (keyName.isNotEmpty() && keyContent.isNotEmpty()) onAdd(keyName, keyContent) }
-            ) { Text(stringResource(id = R.string.add)) }
+                onClick = { if (keyName.isNotEmpty() && keyContent.isNotEmpty()) onAdd(keyName, keyContent) },
+                enabled = keyName.isNotEmpty() && keyContent.isNotEmpty()
+            ) {
+                Text(stringResource(id = R.string.add))
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) }
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(id = R.string.cancel))
+            }
         }
     )
 }

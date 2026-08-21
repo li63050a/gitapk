@@ -18,9 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.unit.dp
 import com.git.app.R
 import com.git.app.data.AccentPreset
 import com.git.app.data.AppLanguage
@@ -75,7 +74,9 @@ fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(id = R.string.settings)) }) }
+        topBar = {
+            TopAppBar(title = { Text(stringResource(id = R.string.settings)) })
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -86,10 +87,7 @@ fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
         ) {
             item {
                 SettingSection(title = context.getString(R.string.theme_mode)) {
-                    ThemeModeSelector(
-                        current = themeMode,
-                        onSelect = { themeMode = it }
-                    )
+                    ThemeModeSelector(current = themeMode, onSelect = { themeMode = it })
                 }
             }
             
@@ -116,7 +114,7 @@ fun SettingsScreen(onNavigateToLog: () -> Unit = {}) {
                     CustomBgSelector(
                         currentPath = customBgPath,
                         onSelect = { launcher.launch("image/*") },
-                        onClear = { 
+                        onClear = {
                             customBgPath = null
                             pendingBgPath = null
                         }
