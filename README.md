@@ -27,7 +27,7 @@
 Git 工具 (Git Tool)
 
 ### 包名
-`com.example.git`
+`com.git.app`
 
 ### 版本
 `0.0.0.2` (versionCode: 2)

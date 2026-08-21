@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.git"
+    namespace = "com.git.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.git"
+        applicationId = "com.git.app"
         minSdk = 23
         targetSdk = 34
         versionCode = 2
