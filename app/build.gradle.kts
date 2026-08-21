@@ -25,10 +25,12 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = null
         }
         debug {
             isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = null
         }
     }
