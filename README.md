@@ -1,6 +1,6 @@
 # Git 工具 (Git Tool) - Android APK
 
-一个轻量级、现代化的 Android Git 命令行工具应用，让用户可以在手机上高效管理 Git 仓库。支持仓库克隆、提交历史查看、分支管理、远程操作等核心功能，同时提供丰富的主题自定义选项。
+一个轻量级、现代化的 Android Git 命令行工具应用，让用户可以在手机上高效管理 Git 仓库。支持仓库克隆、提交历史查看、分支管理、远程操作、暂存管理、SSH 密钥管理、搜索、批量操作等核心功能，同时提供丰富的主题自定义选项。
 
 ---
 
@@ -30,10 +30,10 @@ Git 工具 (Git Tool)
 `com.example.git`
 
 ### 版本
-`0.0.0.1` (versionCode: 1)
+`0.0.0.2` (versionCode: 2)
 
 ### 目标平台
-Android 8.0 (API 26) 及以上
+Android 6.0 (API 23) 及以上
 
 ### 应用定位
 面向开发者和开发者爱好者的移动端 Git 管理工具，提供轻量、快速、易用的 Git 操作体验。无需依赖系统 Git，使用纯 Java 实现的 JGit 库作为底层引擎。
@@ -49,11 +49,13 @@ Android 8.0 (API 26) 及以上
 - **克隆仓库**：从远程 URL 克隆仓库到本地指定路径
 - **仓库扫描**：自动扫描指定目录下所有包含 `.git` 文件夹的 Git 仓库
 - **仓库列表**：展示所有发现的仓库，按最后修改时间倒序排列
+- **实时刷新**：首页下拉刷新按钮实时更新仓库列表
 
 #### 2. 提交历史
 - **提交列表**：获取并展示仓库的提交历史（默认最近 50 条）
-- **提交详情**：每条提交展示完整 SHA、短 SHA、作者、时间、提交信息
+- **提交详情**：点击提交展开查看完整 diff 和文件变更列表
 - **路径筛选**：可指定仓库路径加载对应的提交历史
+- **搜索提交**：支持按关键词搜索提交信息、作者、SHA
 
 #### 3. 分支管理
 - **分支列表**：获取并展示所有分支，当前分支高亮显示
@@ -67,11 +69,32 @@ Android 8.0 (API 26) 及以上
 - **获取 (Fetch)**：仅获取远程仓库信息，不合并
 - **远程列表**：展示所有配置的远程仓库及其 URL
 
-#### 5. 设置与定制
+#### 5. 暂存管理
+- **暂存文件**：将指定文件添加到暂存区
+- **取消暂存**：将已暂存文件从暂存区移除
+- **暂存全部**：一键暂存所有变更
+- **变更列表**：展示已暂存、已修改、未跟踪的文件
+
+#### 6. SSH 密钥管理
+- **查看密钥**：列出本地 ~/.ssh 目录下的所有密钥
+- **添加密钥**：手动添加新的 SSH 密钥
+- **删除密钥**：删除指定 SSH 密钥
+- **密钥信息**：显示密钥类型、创建时间、指纹
+
+#### 7. 搜索功能
+- **搜索提交**：按关键词搜索提交信息、作者、SHA
+- **搜索文件**：按关键词搜索仓库中的文件
+
+#### 8. 批量操作
+- **批量拉取**：一次性从多个仓库拉取最新代码
+- **批量推送**：一次性推送多个仓库的本地提交
+- **批量获取**：一次性获取多个仓库的远程信息
+
+#### 9. 设置与定制
 - **主题模式**：跟随系统 / 浅色模式 / 深色模式
 - **背景颜色**：7 种预设背景色（默认、浅灰、米色、浅蓝、浅绿、浅粉、深黑）
 - **主题色**：8 种预设主题色（靛蓝、蓝色、青绿、红色、琥珀、紫色、森林绿、橙色）
-- **语言切换**：简体中文 / English
+- **语言切换**：简体中文（默认）/ English
 - **自定义背景图**：支持从相册选择图片作为应用背景
 - **关于页面**：展示应用版本信息
 
@@ -88,7 +111,7 @@ Android 8.0 (API 26) 及以上
 
 ### 架构模式
 - **MVVM**：Model-View-ViewModel 架构
-  - **Model**：数据模型 (`GitModels.kt`)
+  - **Model**：数据模型 (`git/GitModels.kt`)
   - **View**：UI 界面 (`ui/screen/*`)
   - **ViewModel**：业务逻辑 (`vm/*`)
 
@@ -109,9 +132,6 @@ Android 8.0 (API 26) 及以上
   - `Dispatchers.IO` 用于网络/磁盘操作
   - `viewModelScope` 用于 ViewModel 生命周期管理
   - `LaunchedEffect` 用于 Composable 中的副作用处理
-
-### 依赖注入（已移除）
-- 原计划使用 Hilt，但因环境问题改为手动实例化
 
 ---
 
@@ -139,24 +159,30 @@ git-app/
 │   │   │   │   │   └── GitBottomNavigation.kt # 底部导航栏组件
 │   │   │   │   └── screen/
 │   │   │   │       ├── home/
-│   │   │   │       │   └── HomeScreen.kt    # 仓库列表页
+│   │   │   │       │   └── HomeScreen.kt    # 仓库列表页（含批量操作）
 │   │   │   │       ├── commit/
-│   │   │   │       │   └── CommitScreen.kt  # 提交历史页
+│   │   │   │       │   └── CommitScreen.kt  # 提交历史页（含详情/搜索）
 │   │   │   │       ├── branch/
 │   │   │   │       │   └── BranchScreen.kt  # 分支管理页
 │   │   │   │       ├── remote/
 │   │   │   │       │   └── RemoteScreen.kt  # 远程操作页
+│   │   │   │       ├── stage/
+│   │   │   │       │   └── StageScreen.kt   # 暂存管理页
+│   │   │   │       ├── ssh/
+│   │   │   │       │   └── SSHScreen.kt     # SSH 密钥管理页
 │   │   │   │       └── settings/
 │   │   │   │           └── SettingsScreen.kt # 设置页面
 │   │   │   └── vm/
 │   │   │       ├── HomeViewModel.kt         # 首页 ViewModel
 │   │   │       ├── CommitViewModel.kt       # 提交历史 ViewModel
 │   │   │       ├── BranchViewModel.kt       # 分支管理 ViewModel
-│   │   │       └── RemoteViewModel.kt       # 远程操作 ViewModel
+│   │   │       ├── RemoteViewModel.kt       # 远程操作 ViewModel
+│   │   │       ├── StageViewModel.kt        # 暂存管理 ViewModel
+│   │   │       └── SSHViewModel.kt          # SSH 密钥管理 ViewModel
 │   │   ├── res/
 │   │   │   ├── drawable/
 │   │   │   │   ├── app_icon.jpg             # 应用图标（来自 2.jpg）
-│   │   │   │   └── ic_launcher_foreground.xml # 启动图标矢量图
+│   │   │   │   └── ic_launcher.xml          # 启动图标矢量图
 │   │   │   ├── values/
 │   │   │   │   ├── strings.xml              # 默认语言（简体中文）
 │   │   │   │   ├── colors.xml               # 颜色定义
@@ -164,7 +190,7 @@ git-app/
 │   │   │   ├── values-en/
 │   │   │   │   └── strings.xml              # 英文资源
 │   │   │   └── values-zh/
-│   │   │       └── strings.xml              # 中文资源（实际使用 values/）
+│   │   │       └── strings.xml              # 中文资源
 │   │   └── AndroidManifest.xml              # 应用清单文件
 │   ├── build.gradle.kts                     # App 模块构建配置
 │   └── proguard-rules.pro                   # 混淆规则
@@ -176,7 +202,6 @@ git-app/
 ├── gradle/wrapper/
 │   ├── gradle-wrapper.jar                   # Gradle Wrapper JAR
 │   └── gradle-wrapper.properties            # Wrapper 配置
-├── PLAN.md                                  # 开发方案文档
 └── README.md                                # 项目说明文档
 ```
 
@@ -189,7 +214,7 @@ git-app/
 | 组件 | 版本要求 | 说明 |
 |------|---------|------|
 | JDK | 17 (OpenJDK) | 编译和运行必需 |
-| Android SDK | API 26+ | 最低支持版本 |
+| Android SDK | API 23+ | 最低支持版本 |
 | Android SDK Build Tools | 34.0.0+ | 构建工具链 |
 | Gradle | 8.9 | 构建系统 |
 | Kotlin | 2.0.21 | 编程语言 |
@@ -217,19 +242,6 @@ gradle clean assembleDebug
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 已知环境问题及解决方案
-
-**问题**：`jlink executable does not exist`
-
-**原因**：系统安装的 OpenJDK 17 缺少 `jlink` 工具（仅安装 JRE 而非 JDK）。
-
-**解决方案**：
-1. 安装完整的 OpenJDK 17 JDK：
-   ```bash
-   sudo apt-get install openjdk-17-jdk
-   ```
-2. 或继续使用当前环境，通过 Gradle 缓存构建（需清除旧缓存后重试）
-
 ---
 
 ## UI 设计
@@ -238,6 +250,7 @@ app/build/outputs/apk/debug/app-debug.apk
 - **Material Design 3**：采用最新的 Material You 设计语言
 - **响应式布局**：适配不同屏幕尺寸
 - **手势友好**：触摸目标符合人体工程学设计
+- **7 个功能页面**：首页、提交、分支、远程、暂存、SSH、设置
 
 ### 主要页面
 
@@ -246,6 +259,8 @@ app/build/outputs/apk/debug/app-debug.apk
 - 每个仓库卡片显示：图标、仓库名称、完整路径
 - 右上角 FAB 按钮用于添加新仓库
 - 支持按最后修改时间排序
+- 支持批量操作（Pull/Push/Fetch 多个仓库）
+- 支持实时刷新
 
 #### 提交历史 (CommitScreen)
 - 顶部路径输入框和加载按钮
@@ -254,7 +269,8 @@ app/build/outputs/apk/debug/app-debug.apk
   - 提交信息
   - 作者名称
   - 提交时间
-- 下拉刷新支持
+- 点击提交展开查看详情（diff + 文件变更列表）
+- 支持搜索提交（按关键词、作者、SHA）
 
 #### 分支管理 (BranchScreen)
 - 分支列表，当前分支高亮显示
@@ -270,12 +286,27 @@ app/build/outputs/apk/debug/app-debug.apk
 - 操作状态指示器（Loading 状态）
 - 最后操作结果展示
 
+#### 暂存管理 (StageScreen)
+- 文件变更列表，分三组展示：
+  - **Staged（已暂存）**：黄色高亮，支持取消暂存
+  - **Modified（已修改）**：支持暂存操作
+  - **Untracked（未跟踪）**：支持暂存操作
+- 支持一键暂存全部
+- 支持直接提交（填写提交信息）
+
+#### SSH 密钥管理 (SSHScreen)
+- 列出本地 ~/.ssh 目录下的所有密钥
+- 每个密钥显示：名称、类型、创建时间、部分内容
+- 支持添加新 SSH 密钥
+- 支持删除指定密钥
+
 #### 设置 (SettingsScreen)
 - 主题模式选择（跟随系统/浅色/深色）
 - 背景颜色选择（7种预设）
 - 主题色选择（8种预设）
 - 语言切换（简体中文/English）
 - 自定义背景图片选择
+- SSH 密钥管理入口
 - 关于信息
 
 ### 配色方案
@@ -319,20 +350,6 @@ app/build/outputs/apk/debug/app-debug.apk
 | 语言 | `language` | `zh` |
 | 自定义背景图 | `custom_bg` | null |
 
-### 实现方式
-```kotlin
-// SettingsRepository.kt
-private val Context.settingsStore by preferencesDataStore(name = "git_settings")
-
-val settings: Flow<UiSettings> = context.settingsStore.data.map { prefs ->
-    UiSettings(
-        themeMode = ThemeMode.entries.firstOrNull { it.raw == prefs[Keys.THEME_MODE] } ?: ThemeMode.SYSTEM,
-        bgPreset = BgPreset.entries.firstOrNull { it.raw == prefs[Keys.BG_PRESET] } ?: BgPreset.DEFAULT,
-        // ...
-    )
-}
-```
-
 ---
 
 ## Git 核心实现
@@ -347,6 +364,9 @@ val settings: Flow<UiSettings> = context.settingsStore.data.map { prefs ->
 | `cloneRepository` | 克隆远程仓库 | URL, 本地路径 | GitResult<String> |
 | `initRepository` | 初始化新仓库 | 本地路径 | GitResult<String> |
 | `getCommits` | 获取提交历史 | 路径, 数量 | GitResult<List<Commit>> |
+| `getCommitDetail` | 获取提交详情 | 路径, commitId | GitResult<CommitDetail> |
+| `searchCommitsByMessage` | 搜索提交 | 路径, 关键词 | GitResult<List<Commit>> |
+| `searchFiles` | 搜索文件 | 路径, 关键词 | GitResult<List<String>> |
 | `getBranches` | 获取分支列表 | 路径 | GitResult<List<Branch>> |
 | `getCurrentBranch` | 获取当前分支 | 路径 | GitResult<String> |
 | `createBranch` | 创建新分支 | 路径, 分支名 | GitResult<Boolean> |
@@ -356,11 +376,18 @@ val settings: Flow<UiSettings> = context.settingsStore.data.map { prefs ->
 | `addAll` | 添加所有变更 | 路径 | GitResult<Boolean> |
 | `commit` | 提交变更 | 路径, 提交信息 | GitResult<String> |
 | `getStatus` | 获取仓库状态 | 路径 | GitResult<RepoStatus> |
+| `getStagedFiles` | 获取暂存文件列表 | 路径 | GitResult<List<String>> |
 | `pull` | 拉取远程变更 | 路径 | GitResult<String> |
 | `push` | 推送本地变更 | 路径 | GitResult<String> |
 | `fetch` | 获取远程信息 | 路径 | GitResult<String> |
 | `getRemotes` | 获取远程配置 | 路径 | GitResult<List<Remote>> |
 | `getFileDiff` | 获取文件差异 | 路径, 文件 | GitResult<String> |
+| `batchPull` | 批量拉取 | 仓库路径列表 | GitResult<List<BatchOperationResult>> |
+| `batchPush` | 批量推送 | 仓库路径列表 | GitResult<List<BatchOperationResult>> |
+| `batchFetch` | 批量获取 | 仓库路径列表 | GitResult<List<BatchOperationResult>> |
+| `listSSHKeys` | 列出 SSH 密钥 | - | GitResult<List<SSHKey>> |
+| `addSSHKey` | 添加 SSH 密钥 | 名称, 内容 | GitResult<Boolean> |
+| `deleteSSHKey` | 删除 SSH 密钥 | 名称 | GitResult<Boolean> |
 
 ### 错误处理
 所有方法返回统一的 `GitResult<T>` 包装类：
@@ -370,21 +397,6 @@ data class GitResult<T>(
     val data: T? = null,
     val error: String? = null
 )
-```
-
-### JGit 使用示例
-```kotlin
-suspend fun getCommits(repoPath: String, count: Int = 50): GitResult<List<Commit>> = withContext(Dispatchers.IO) {
-    return@withContext try {
-        val git = Git.open(java.io.File(repoPath))
-        val commits = git.log().setMaxCount(count).call()
-        val result = commits.map { it.toCommit() }.toList()
-        git.close()
-        GitResult(success = true, data = result)
-    } catch (e: Exception) {
-        GitResult(success = false, error = e.message ?: "Failed to get commits")
-    }
-}
 ```
 
 ---
@@ -397,6 +409,8 @@ suspend fun getCommits(repoPath: String, count: Int = 50): GitResult<List<Commit
 | 简体中文 | zh | `values-zh/` |
 | English | en | `values-en/` |
 
+**默认语言：简体中文**
+
 ### 语言切换实现
 ```kotlin
 fun applyLanguage(context: Context, language: AppLanguage) {
@@ -407,9 +421,6 @@ fun applyLanguage(context: Context, language: AppLanguage) {
     context.createConfigurationContext(config)
 }
 ```
-
-### 字符串资源
-所有 UI 文本通过 `R.string.*` 引用，支持动态切换。
 
 ---
 
@@ -452,9 +463,6 @@ fun applyLanguage(context: Context, language: AppLanguage) {
 ```
 用于扫描本地 Git 仓库和选择背景图片。
 
-### Android 13+ 适配
-针对 Android 13 (API 33) 及以上版本，使用新的分区存储机制，无需额外权限即可访问下载目录。
-
 ---
 
 ## 开发计划
@@ -466,58 +474,18 @@ fun applyLanguage(context: Context, language: AppLanguage) {
 - [x] 提交历史页面
 - [x] 分支管理页面
 - [x] 远程操作页面
+- [x] 暂存管理页面
+- [x] SSH 密钥管理页面
 - [x] 设置页面
-- [x] 多语言支持（中英文）
-- [x] 主题系统（背景色、主题色）
-- [x] 自定义背景图片
+- [x] 多语言支持（中英文，默认中文）
+- [x] 主题系统（背景色、主题色、自定义背景图）
+- [x] 提交详情展开查看（含 diff）
+- [x] 搜索功能（提交/文件）
+- [x] 批量操作（多仓库 Pull/Push/Fetch）
+- [x] 实时刷新
 - [x] 应用图标
 - [x] Debug APK 构建
-
-### 待开发
-- [ ] 提交详情展开查看
-- [ ] 文件差异查看
-- [ ] 暂存/取消暂存操作
-- [ ] SSH 密钥管理
-- [ ] 搜索功能
-- [ ] 仓库状态实时刷新
-- [ ] 多仓库批量操作
-- [ ] 发布 Release APK
-
----
-
-## 依赖列表
-
-```kotlin
-dependencies {
-    // Compose BOM
-    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
-    
-    // Activity & Core
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    
-    // Navigation
-    implementation("androidx.navigation:navigation-compose:2.8.4")
-    
-    // Lifecycle & ViewModel
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    
-    // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    
-    // JGit
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
-    
-    // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-}
-```
+- [x] Android 6-16 支持（minSdk 23）
 
 ---
 
@@ -526,11 +494,13 @@ dependencies {
 | 项目 | 值 |
 |------|-----|
 | 包名 | com.example.git |
-| 最小 SDK | 26 (Android 8.0) |
+| 最小 SDK | 23 (Android 6.0) |
 | 目标 SDK | 34 (Android 14) |
 | 编译 SDK | 34 (Android 14) |
-| ABI 过滤 | arm64-v8a |
+| ABI 过滤 | arm64-v8a, armeabi-v7a, x86, x86_64 |
 | APK 大小 | ~18 MB |
+| 版本 | 0.0.0.2 |
+| GitHub | https://github.com/li63050a/gitapk |
 
 ---
 
