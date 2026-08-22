@@ -56,12 +56,7 @@ class GitExecutor {
 
     fun openRepository(repoPath: String): Repository? {
         return try {
-            val builder = FileRepositoryBuilder()
-            builder
-                .setGitDir(java.io.File(repoPath, ".git"))
-                .readEnvironment()
-                .findGitDir()
-                ?.let { builder.build() }
+            FileRepositoryBuilder().setGitDir(java.io.File(repoPath, ".git")).build()
         } catch (e: Exception) {
             null
         }
@@ -223,7 +218,8 @@ class GitExecutor {
     suspend fun searchFiles(repoPath: String, query: String): GitResult<List<String>> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            val allFiles = git.status().call().added.toList() + git.status().call().modified.toList() + git.status().call().untracked.toList()
+            val status = git.status().call()
+            val allFiles = status.added.toList() + status.modified.toList() + status.untracked.toList()
             val filtered = allFiles.filter { it.contains(query, ignoreCase = true) }.take(50)
             git.close()
             GitResult(success = true, data = filtered)
@@ -370,7 +366,7 @@ class GitExecutor {
                 modifiedFiles = modified,
                 stagedFiles = added,
                 untrackedFiles = untracked,
-                conflictedFiles = emptyList()
+                conflictedFiles = status.conflictingStageState.keys.toList()
             ))
         } catch (e: Exception) {
             GitResult(success = false, error = e.message ?: "Get status failed")
@@ -429,21 +425,19 @@ class GitExecutor {
     suspend fun getFileDiff(repoPath: String, filePath: String): GitResult<String> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            val os = ByteArrayOutputStream()
-            val diffFmt = org.eclipse.jgit.diff.DiffFormatter(os)
-            val status = git.status().call()
-            if (status.modified.contains(filePath) || status.added.contains(filePath) || status.changed.contains(filePath)) {
-                val diff = git.diff().call()
-                diff.forEach { diffEntry ->
-                    if (diffEntry.newPath == filePath || diffEntry.oldPath == filePath) {
-                        diffFmt.format(diffEntry)
+            git.use { g ->
+                val os = ByteArrayOutputStream()
+                val diffFmt = org.eclipse.jgit.diff.DiffFormatter(os)
+                diffFmt.use { fmt ->
+                    val status = g.status().call()
+                    if (status.modified.contains(filePath) || status.added.contains(filePath) || status.changed.contains(filePath)) {
+                        val diff = g.diff().setPathFilter(org.eclipse.jgit.treewalk.filter.PathFilter.create(filePath)).call()
+                        diff.forEach { fmt.format(it) }
+                        GitResult(success = true, data = os.toString())
+                    } else {
+                        GitResult(success = false, error = "No changes for $filePath")
                     }
                 }
-                diffFmt.close()
-                git.close()
-                GitResult(success = true, data = os.toString())
-            } else {
-                GitResult(success = false, error = "No changes for $filePath")
             }
         } catch (e: Exception) {
             GitResult(success = false, error = e.message ?: "Get diff failed")
@@ -582,6 +576,8 @@ class GitExecutor {
             val homeDir = System.getProperty("user.home") ?: "/root"
             val keyFile = java.io.File(homeDir, ".ssh/$name")
             if (keyFile.exists()) keyFile.delete()
+            val passFile = java.io.File(homeDir, ".ssh/$name.pass")
+            if (passFile.exists()) passFile.delete()
             GitResult(success = true, data = true)
         } catch (e: Exception) {
             GitResult(success = false, error = e.message ?: "Failed to delete SSH key")
@@ -606,7 +602,12 @@ class GitExecutor {
     suspend fun setConfig(repoPath: String, key: String, value: String): GitResult<Boolean> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            git.repository.config.setString(key.split(".")[0], key.split(".")[1], null, value)
+            val parts = key.split(".")
+            if (parts.size < 2) {
+                git.close()
+                return@withContext GitResult(success = false, error = "Invalid config key: $key")
+            }
+            git.repository.config.setString(parts[0], parts[1], null, value)
             git.repository.config.save()
             git.close()
             GitResult(success = true, data = true)
@@ -641,6 +642,17 @@ class GitExecutor {
             GitResult(success = true, data = true)
         } catch (e: Exception) {
             GitResult(success = false, error = e.message ?: "Failed to add/update remote")
+        }
+    }
+
+    suspend fun removeRemote(repoPath: String, name: String): GitResult<Boolean> = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val git = Git.open(java.io.File(repoPath))
+            git.remoteRemove().setRemoteName(name).call()
+            git.close()
+            GitResult(success = true, data = true)
+        } catch (e: Exception) {
+            GitResult(success = false, error = e.message ?: "Failed to remove remote")
         }
     }
 
@@ -712,7 +724,11 @@ class GitExecutor {
     suspend fun merge(repoPath: String, branchName: String): GitResult<String> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            val result = git.merge().include(git.repository.resolve(branchName)).call()
+            val target = git.repository.resolve(branchName) ?: run {
+                git.close()
+                return@withContext GitResult(success = false, error = "Branch not found: $branchName")
+            }
+            val result = git.merge().include(target).call()
             git.close()
             val ok = result.mergeStatus == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED
                 || result.mergeStatus == org.eclipse.jgit.api.MergeResult.MergeStatus.ALREADY_UP_TO_DATE
@@ -727,10 +743,7 @@ class GitExecutor {
             val git = Git.open(java.io.File(repoPath))
             val cmd = git.stashCreate()
             if (message != null) {
-                try {
-                    cmd.javaClass.getMethod("setMessage", String::class.java).invoke(cmd, message)
-                } catch (_: Exception) {
-                }
+                runCatching { cmd.javaClass.getMethod("setMessage", String::class.java).invoke(cmd, message) }
             }
             cmd.call()
             git.close()
@@ -744,6 +757,7 @@ class GitExecutor {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
             git.stashApply().setStashRef("stash@{$index}").call()
+            git.stashDrop().setStashRef(index).call()
             git.close()
             GitResult(success = true, data = true)
         } catch (e: Exception) {
@@ -814,7 +828,11 @@ class GitExecutor {
     suspend fun revert(repoPath: String, commitId: String): GitResult<String> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            git.revert().include(git.repository.resolve(commitId)).call()
+            val target = git.repository.resolve(commitId) ?: run {
+                git.close()
+                return@withContext GitResult(success = false, error = "Commit not found: $commitId")
+            }
+            git.revert().include(target).call()
             git.close()
             GitResult(success = true, data = "Reverted $commitId")
         } catch (e: Exception) {
@@ -825,7 +843,11 @@ class GitExecutor {
     suspend fun cherryPick(repoPath: String, commitId: String): GitResult<String> = withContext(Dispatchers.IO) {
         return@withContext try {
             val git = Git.open(java.io.File(repoPath))
-            git.cherryPick().include(git.repository.resolve(commitId)).call()
+            val target = git.repository.resolve(commitId) ?: run {
+                git.close()
+                return@withContext GitResult(success = false, error = "Commit not found: $commitId")
+            }
+            git.cherryPick().include(target).call()
             git.close()
             GitResult(success = true, data = "Cherry-picked $commitId")
         } catch (e: Exception) {

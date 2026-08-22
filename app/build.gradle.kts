@@ -10,16 +10,6 @@ android {
     namespace = "com.git.app"
     compileSdk = 34
 
-    packaging {
-        resources {
-            excludes += setOf(
-                "/OSGI-INF/l10n/plugin.properties",
-                "/OSGI-INF/*.xml",
-                "/META-INF/MANIFEST.MF"
-            )
-        }
-    }
-
     defaultConfig {
         applicationId = "com.git.app"
         minSdk = 23
@@ -27,15 +17,19 @@ android {
         versionCode = 1
         versionName = "0.0.0.1"
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
         resConfigs("zh", "en")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = null
         }
         debug {
@@ -72,7 +66,12 @@ android {
                 "META-INF/INDEX.LIST",
                 "META-INF/*.RSA",
                 "META-INF/*.DSA",
-                "META-INF/*.SF"
+                "META-INF/*.SF",
+                "META-INF/MANIFEST.MF",
+                "plugin.properties",
+                "**/plugin.properties",
+                "/OSGI-INF/**",
+                "**/OSGI-INF/**"
             )
         }
     }
@@ -99,8 +98,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
-    implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
+    implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.apache:5.13.3.202401111512-r") {
+        exclude(group = "org.apache.sshd", module = "sshd-osgi")
+    }
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

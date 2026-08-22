@@ -133,6 +133,7 @@
     <string name="user_email">邮箱</string>
     <string name="save">保存</string>
     <string name="saved">已保存</string>
+    <string name="file_content">内容</string>
     <string name="no_remotes">暂无远程仓库</string>
     <string name="add_remote">添加远程</string>
     <string name="edit_remote">编辑远程</string>

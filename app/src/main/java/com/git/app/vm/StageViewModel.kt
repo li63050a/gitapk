@@ -53,7 +53,7 @@ class StageViewModel : ViewModel() {
         viewModelScope.launch {
             runCatching {
                 val git = org.eclipse.jgit.api.Git.open(java.io.File(repoPath))
-                git.reset().call()
+                git.reset().addPath(filePath).call()
                 git.close()
             }
             loadStatus(repoPath)

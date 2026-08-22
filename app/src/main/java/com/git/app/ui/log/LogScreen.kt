@@ -470,7 +470,6 @@ private fun CrashCard(
     onLongClick: () -> Unit
 ) {
     Card(
-        onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.errorContainer

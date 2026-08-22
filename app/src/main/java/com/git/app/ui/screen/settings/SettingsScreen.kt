@@ -54,6 +54,7 @@ fun SettingsScreen(
     var gitUserEmail by remember { mutableStateOf(settings.gitUserEmail) }
     var logMaxBytesKb by remember { mutableStateOf(0) }
     var logMaxCount by remember { mutableStateOf(0) }
+    var initialized by remember { mutableStateOf(false) }
 
     // Sync local editing state from the persisted store exactly once, so reopening
     // the screen shows the saved values instead of the in-memory defaults.
@@ -69,6 +70,7 @@ fun SettingsScreen(
         gitUserEmail = s.gitUserEmail
         logMaxBytesKb = if (s.logMaxBytes > 0) (s.logMaxBytes / 1024).toInt() else 0
         logMaxCount = s.logMaxFiles
+        initialized = true
     }
     
     val launcher = rememberLauncherForActivityResult(
@@ -116,19 +118,21 @@ fun SettingsScreen(
         permTick++
     }
 
-    LaunchedEffect(themeMode) { SettingsRepository.setThemeMode(context, themeMode) }
-    LaunchedEffect(bgPreset) { SettingsRepository.setBgPreset(context, bgPreset) }
-    LaunchedEffect(accentPreset) { SettingsRepository.setAccentPreset(context, accentPreset) }
+    LaunchedEffect(themeMode) { if (initialized) SettingsRepository.setThemeMode(context, themeMode) }
+    LaunchedEffect(bgPreset) { if (initialized) SettingsRepository.setBgPreset(context, bgPreset) }
+    LaunchedEffect(accentPreset) { if (initialized) SettingsRepository.setAccentPreset(context, accentPreset) }
     LaunchedEffect(language) {
-        SettingsRepository.setLanguage(context, language)
-        val current = context.resources.configuration.locale?.language
-        val want = language.tag ?: Locale.getDefault().language
-        if (current != want) {
-            (context as? ComponentActivity)?.recreate()
+        if (initialized) {
+            SettingsRepository.setLanguage(context, language)
+            val current = context.resources.configuration.locale?.language
+            val want = language.tag ?: Locale.getDefault().language
+            if (current != want) {
+                (context as? ComponentActivity)?.recreate()
+            }
         }
     }
     LaunchedEffect(gitUserName, gitUserEmail) {
-        SettingsRepository.setGlobalGitUser(context, gitUserName, gitUserEmail)
+        if (initialized) SettingsRepository.setGlobalGitUser(context, gitUserName, gitUserEmail)
     }
 
     val versionName = remember(context) {

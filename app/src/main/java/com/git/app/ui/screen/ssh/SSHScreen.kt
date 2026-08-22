@@ -97,6 +97,11 @@ fun SSHScreen(onBack: () -> Unit = {}) {
     }
 
     if (showAddDialog) {
+        LaunchedEffect(showAddDialog) {
+            keyName = ""
+            keyContent = ""
+            keyPassphrase = ""
+        }
         AddSSHKeyDialog(
             onDismiss = { showAddDialog = false },
             onAdd = { name, content, passphrase ->
@@ -136,7 +141,7 @@ fun SSHKeyCard(key: com.git.app.git.SSHKey, onDelete: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = key.content.take(100) + if (key.content.length > 100) "..." else "",
+                text = key.content.lineSequence().firstOrNull()?.take(80) + " (私钥仅显示第一行)",
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

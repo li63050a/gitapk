@@ -133,6 +133,7 @@
     <string name="user_email">Email</string>
     <string name="save">Save</string>
     <string name="saved">Saved</string>
+    <string name="file_content">Content</string>
     <string name="no_remotes">No remotes configured</string>
     <string name="add_remote">Add Remote</string>
     <string name="edit_remote">Edit Remote</string>

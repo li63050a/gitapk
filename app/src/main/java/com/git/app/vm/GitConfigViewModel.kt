@@ -67,11 +67,7 @@ class GitConfigViewModel : ViewModel() {
 
     fun deleteRemote(repoPath: String, name: String) {
         viewModelScope.launch {
-            runCatching {
-                val git = org.eclipse.jgit.api.Git.open(java.io.File(repoPath))
-                git.remoteRemove().setRemoteName(name).call()
-                git.close()
-            }
+            gitExecutor.removeRemote(repoPath, name)
             loadConfig(repoPath)
         }
     }

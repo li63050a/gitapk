@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.git.app.R
@@ -76,17 +77,20 @@ fun FileScreen(repoPath: String) {
             }
         }
     } else {
-        EditorScreen(
-            repoPath = repoPath,
-            relativePath = uiState.selectedFile!!,
-            initialContent = uiState.fileContent,
-            onBack = { viewModel.closeFile() },
-            onSave = { content ->
-                scope.launch {
-                    viewModel.saveFile(repoPath, uiState.selectedFile!!, content)
+        val selectedFile = uiState.selectedFile
+        if (selectedFile != null) {
+            EditorScreen(
+                repoPath = repoPath,
+                relativePath = selectedFile,
+                initialContent = uiState.fileContent,
+                onBack = { viewModel.closeFile() },
+                onSave = { content ->
+                    scope.launch {
+                        viewModel.saveFile(repoPath, selectedFile, content)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -125,7 +129,7 @@ fun EditorScreen(
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (savedTip) {
                 Text(
-                    text = "已保存",
+                    text = stringResource(id = R.string.saved),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -135,7 +139,7 @@ fun EditorScreen(
                 value = content,
                 onValueChange = { content = it },
                 modifier = Modifier.fillMaxSize().padding(16.dp),
-                label = { Text("内容") },
+                label = { Text(stringResource(id = R.string.file_content)) },
                 textStyle = MaterialTheme.typography.bodyMedium
             )
         }

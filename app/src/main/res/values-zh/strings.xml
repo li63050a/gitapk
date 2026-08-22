@@ -114,4 +114,6 @@
     <string name="no_repos">暂无仓库</string>
     <string name="no_repos_hint">点击下方按钮添加新仓库</string>
     <string name="repos">个仓库</string>
+    <string name="saved">已保存</string>
+    <string name="file_content">内容</string>
 </resources>
