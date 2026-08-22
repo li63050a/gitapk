@@ -1,7 +1,9 @@
 package com.git.app.vm
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.git.app.data.RepoPathsStore
 import com.git.app.git.BatchOperationResult
 import com.git.app.git.GitExecutor
 import com.git.app.git.RepoInfo
@@ -18,7 +20,7 @@ data class HomeUiState(
     val isBatchRunning: Boolean = false
 )
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val gitExecutor = GitExecutor()
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -27,12 +29,51 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val repos = scanRepositories(scanPath)
-                _uiState.value = _uiState.value.copy(repos = repos, isLoading = false, error = null)
+                val roots = mutableListOf(scanPath)
+                getApplication<Application>().getExternalFilesDir(null)?.absolutePath
+                    ?.let { roots.add(it) }
+                val repos = roots.flatMap { scanRepositories(it) }
+                    .associateBy { it.path }.toMutableMap()
+                // Merge previously added repo paths so they always show up, even when
+                // the public storage root cannot be listed without "All files access".
+                val persisted = RepoPathsStore.getPaths(getApplication())
+                for (p in persisted) {
+                    if (!repos.containsKey(p)) {
+                        val f = java.io.File(p)
+                        if (f.isDirectory) {
+                            repos[p] = RepoInfo(
+                                path = p,
+                                name = f.name,
+                                lastModified = f.lastModified()
+                            )
+                        }
+                    }
+                }
+                _uiState.value = _uiState.value.copy(
+                    repos = repos.values.sortedByDescending { it.lastModified },
+                    isLoading = false,
+                    error = null
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
+    }
+
+    private fun registerRepo(path: String) {
+        viewModelScope.launch {
+            RepoPathsStore.addPath(getApplication(), path)
+        }
+        val f = java.io.File(path)
+        val repo = RepoInfo(path = path, name = f.name, lastModified = f.lastModified())
+        val current = _uiState.value.repos.toMutableList()
+        current.removeIf { it.path == path }
+        current.add(repo)
+        _uiState.value = _uiState.value.copy(
+            repos = current.sortedByDescending { it.lastModified },
+            isLoading = false,
+            error = null
+        )
     }
 
     private fun scanRepositories(path: String): List<RepoInfo> {
@@ -52,9 +93,8 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             val result = gitExecutor.cloneRepository(url, localPath)
-            if (result.success) loadRepos(localPath.substringBeforeLast("/"))
-            else _uiState.value = _uiState.value.copy(error = result.error)
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            if (result.success) registerRepo(localPath)
+            else _uiState.value = _uiState.value.copy(error = result.error, isLoading = false)
         }
     }
 
@@ -62,9 +102,8 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             val result = gitExecutor.initRepository(path)
-            if (result.success) loadRepos(path.substringBeforeLast("/"))
-            else _uiState.value = _uiState.value.copy(error = result.error)
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            if (result.success) registerRepo(path)
+            else _uiState.value = _uiState.value.copy(error = result.error, isLoading = false)
         }
     }
 

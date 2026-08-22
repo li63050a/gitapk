@@ -35,9 +35,11 @@ data class LogEntry(
 }
 
 object Log {
-    private const val MAX_RAM_ENTRIES = 800
-    private const val MAX_FILE_BYTES = 512 * 1024
-    private const val MAX_FILES = 3
+    private const val MAX_RAM_ENTRIES = 2000
+    private const val LINE_REGEX = """^(\d{2}:\d{2}:\d{2}\.\d{3})\s+([DIWE])/(.+?):\s?(.*)$"""
+
+    var maxFileBytes: Long = 0L
+    var maxFiles: Int = 0
 
     private val queue = ConcurrentLinkedQueue<LogEntry>()
     private val _entries = MutableStateFlow<List<LogEntry>>(emptyList())
@@ -49,6 +51,12 @@ object Log {
     fun init(context: Context) {
         logDir = File(context.filesDir, "logs").apply { mkdirs() }
         currentFile = logDir?.let { File(it, logFileName()) }
+        loadHistory()
+    }
+
+    fun configure(maxBytes: Long, maxFiles: Int) {
+        this.maxFileBytes = maxBytes
+        this.maxFiles = maxFiles
     }
 
     fun logDirFile(): File? = logDir
@@ -81,7 +89,7 @@ object Log {
     private fun writeFile(entry: LogEntry) {
         runCatching {
             val file = currentFile ?: return
-            if (file.length() > MAX_FILE_BYTES) rotate()
+            if (maxFileBytes > 0 && file.length() > maxFileBytes) rotate()
             val sb = StringBuilder()
             sb.append(entry.timeText).append(' ').append(entry.levelText).append('/')
                 .append(entry.tag).append(": ").append(entry.message).append('\n')
@@ -92,10 +100,10 @@ object Log {
 
     private fun rotate() {
         val dir = logDir ?: return
-        val files = dir.listFiles { f -> f.name.endsWith(".log") }
-            ?.sortedBy { it.name } ?: emptyList()
-        while (files.size >= MAX_FILES) {
-            files.firstOrNull()?.delete()
+        val files = dir.listFiles { f -> f.isFile && f.name.endsWith(".log") && !f.name.startsWith("crash_") }
+            ?.sortedBy { it.name }?.toMutableList() ?: return
+        while (maxFiles > 0 && files.size >= maxFiles) {
+            files.removeFirstOrNull()?.delete()
         }
         currentFile = File(dir, logFileName())
     }
@@ -103,11 +111,50 @@ object Log {
     private fun logFileName(): String =
         SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
 
+    private fun loadHistory() {
+        val dir = logDir ?: return
+        val timeFmt = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+        val base = System.currentTimeMillis()
+        val files = dir.listFiles { f ->
+            f.isFile && f.name.endsWith(".log") && !f.name.startsWith("crash_")
+        }?.sortedBy { it.name } ?: return
+        val parsed = ArrayList<LogEntry>()
+        for (f in files) {
+            runCatching {
+                f.readText().lineSequence().forEach { line ->
+                    parseLine(line, timeFmt, base)?.let { parsed.add(it) }
+                }
+            }
+        }
+        if (parsed.size > MAX_RAM_ENTRIES) {
+            parsed.subList(0, parsed.size - MAX_RAM_ENTRIES).clear()
+        }
+        queue.addAll(parsed)
+        synchronized(this) { _entries.value = queue.toList() }
+    }
+
+    private fun parseLine(line: String, timeFmt: SimpleDateFormat, base: Long): LogEntry? {
+        val m = Regex(LINE_REGEX).matchEntire(line) ?: return null
+        val (timeStr, levelStr, tag, msg) = m.destructured
+        val level = when (levelStr) {
+            "D" -> LEVEL_DEBUG
+            "I" -> LEVEL_INFO
+            "W" -> LEVEL_WARN
+            else -> LEVEL_ERROR
+        }
+        val time = runCatching { timeFmt.parse(timeStr)?.time ?: base }.getOrDefault(base)
+        return LogEntry(level, time, tag, msg, null)
+    }
+
+    fun deleteCrash(file: File): Boolean = runCatching { file.delete() }.getOrDefault(false)
+
     fun clear() {
         queue.clear()
         synchronized(this) { _entries.value = emptyList() }
         runCatching {
-            currentFile?.delete()
+            logDir?.listFiles { f ->
+                f.isFile && f.name.endsWith(".log") && !f.name.startsWith("crash_")
+            }?.forEach { it.delete() }
             currentFile = logDir?.let { File(it, logFileName()) }
         }
     }

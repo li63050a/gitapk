@@ -1,8 +1,14 @@
 package com.git.app.ui.screen
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Environment
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
@@ -31,7 +37,8 @@ import androidx.compose.foundation.rememberScrollState
 @Composable
 fun HomeScreen(
     onRepoSelected: (String) -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToConfig: (String) -> Unit
 ) {
     val viewModel: HomeViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
@@ -41,7 +48,7 @@ fun HomeScreen(
     var showBatchDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadRepos("/sdcard/Download")
+        viewModel.loadRepos(Environment.getExternalStorageDirectory().absolutePath)
     }
 
     Scaffold(
@@ -49,12 +56,15 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = { showAddDialog = true }) {
+                        Icon(Icons.Default.Folder, contentDescription = null)
+                    }
                     if (uiState.repos.isNotEmpty()) {
                         IconButton(onClick = { showBatchDialog = true }) {
                             Icon(Icons.Default.Sync, contentDescription = null)
                         }
                     }
-                    IconButton(onClick = { viewModel.loadRepos("/sdcard/Download") }) {
+                    IconButton(onClick = { viewModel.loadRepos(Environment.getExternalStorageDirectory().absolutePath) }) {
                         Icon(Icons.Default.Refresh, contentDescription = null)
                     }
                 }
@@ -89,7 +99,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(16.dp)
                         )
-                        Button(onClick = { viewModel.loadRepos("/sdcard/Download") }) {
+                        Button(onClick = { viewModel.loadRepos(Environment.getExternalStorageDirectory().absolutePath) }) {
                             Text(stringResource(id = R.string.reload))
                         }
                     }
@@ -199,15 +209,73 @@ fun RepoCard(repo: RepoInfo, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Convert a system file picker (SAF) tree Uri such as
+ * content://.../tree/primary:Download/document/primary:Download
+ * into a real filesystem path that JGit can use (/storage/emulated/0/Download).
+ * Returns null when the path cannot be derived.
+ */
+fun treeUriToPath(uri: Uri): String? {
+    val path = uri.path ?: return null
+    if (path.contains("primary:")) {
+        val rel = path.substringAfter("primary:")
+            .substringBefore("/document")
+            .substringBefore("/tree")
+            .trimEnd('/')
+        return "/storage/emulated/0/$rel"
+    }
+    return null
+}
+
 @Composable
 fun AddRepoDialog(
+    initialPath: String = "",
     onDismiss: () -> Unit,
     onClone: (String, String) -> Unit,
     onInit: (String) -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var url by remember { mutableStateOf("") }
-    var localPath by remember { mutableStateOf("") }
+    var localPath by remember { mutableStateOf(initialPath) }
+    var showFolderPicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val treeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            treeUriToPath(it)?.let { path -> localPath = path }
+        }
+    }
+
+    val appDir = remember {
+        context.getExternalFilesDir(null)?.absolutePath
+            ?: "/storage/emulated/0/Android/data/${context.packageName}/files"
+    }
+    val documentsDir = remember {
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+    }
+    val downloadDir = remember {
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+    }
+    fun pickLocation(p: String) {
+        java.io.File(p).mkdirs()
+        localPath = p
+    }
+
+    if (showFolderPicker) {
+            FolderPickerDialog(
+                initialPath = if (localPath.isNotEmpty()) localPath else Environment.getExternalStorageDirectory().absolutePath,
+                onDismiss = { showFolderPicker = false },
+            onSelect = { path ->
+                localPath = path
+                showFolderPicker = false
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -227,6 +295,30 @@ fun AddRepoDialog(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(id = R.string.quick_locations),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AssistChip(
+                        onClick = { pickLocation(appDir) },
+                        label = { Text(stringResource(id = R.string.app_dir)) }
+                    )
+                    AssistChip(
+                        onClick = { pickLocation(documentsDir) },
+                        label = { Text(stringResource(id = R.string.documents)) }
+                    )
+                    AssistChip(
+                        onClick = { pickLocation(downloadDir) },
+                        label = { Text(stringResource(id = R.string.download)) }
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
                 if (selectedTab == 0) {
                     OutlinedTextField(
                         value = url,
@@ -239,14 +331,40 @@ fun AddRepoDialog(
                         value = localPath,
                         onValueChange = { localPath = it },
                         label = { Text(stringResource(id = R.string.local_path)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            Row {
+                                IconButton(onClick = { showFolderPicker = true }) {
+                                    Icon(Icons.Default.Folder, contentDescription = null)
+                                }
+                                IconButton(onClick = { treeLauncher.launch(null) }) {
+                                    Icon(Icons.Default.AccountTree, contentDescription = null)
+                                }
+                            }
+                        }
                     )
                 } else {
                     OutlinedTextField(
                         value = localPath,
                         onValueChange = { localPath = it },
                         label = { Text(stringResource(id = R.string.dir_path)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            Row {
+                                IconButton(onClick = { showFolderPicker = true }) {
+                                    Icon(Icons.Default.Folder, contentDescription = null)
+                                }
+                                IconButton(onClick = { treeLauncher.launch(null) }) {
+                                    Icon(Icons.Default.AccountTree, contentDescription = null)
+                                }
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(id = R.string.init_no_remote_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -362,4 +480,84 @@ fun BatchOperationDialog(
             }
         }
     )
+}
+
+@Composable
+fun FolderPickerDialog(
+    initialPath: String = Environment.getExternalStorageDirectory().absolutePath,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    var currentPath by remember { mutableStateOf(initialPath) }
+    val directories = remember(currentPath) {
+        kotlin.runCatching {
+            val dir = java.io.File(currentPath)
+            if (dir.exists() && dir.isDirectory) {
+                dir.listFiles { f -> f.isDirectory }
+                    ?.map { it.absolutePath }
+                    ?.sorted() ?: emptyList()
+            } else {
+                emptyList()
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(id = R.string.select_folder)) },
+        confirmButton = {
+            Button(onClick = { onSelect(currentPath) }) {
+                Text(stringResource(id = R.string.select_folder))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(id = R.string.cancel))
+            }
+        },
+        text = {
+            Column {
+                Text(
+                    text = currentPath,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                LazyColumn(modifier = Modifier.height(300.dp)) {
+                    if (currentPath != "/") {
+                        item {
+                            FolderRow(path = "../", label = stringResource(id = R.string.parent_dir)) {
+                                currentPath = java.io.File(currentPath).parent ?: "/"
+                            }
+                        }
+                    }
+                    items(directories) { path ->
+                        FolderRow(path = path, label = path) {
+                            currentPath = path
+                        }
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun FolderRow(path: String, label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 10.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Default.Folder,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+    }
 }

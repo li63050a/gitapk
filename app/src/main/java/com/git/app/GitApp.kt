@@ -9,6 +9,10 @@ class GitApp : Application() {
         super.onCreate()
         Log.init(this)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler())
+        // Ensure the app's private external storage directory
+        // (/storage/emulated/0/Android/data/<package>/files) exists so it is
+        // visible in a file manager.
+        applicationContext.getExternalFilesDir(null)
         Log.i("App", "Git App 启动")
     }
 }

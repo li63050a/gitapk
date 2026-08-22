@@ -43,11 +43,11 @@ fun StageScreen(repoPath: String) {
                 }
             )
         },
-        floatingActionButton = {
+                floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     if (commitMessage.isNotEmpty()) {
-                        viewModel.commit(repoPath, commitMessage)
+                        viewModel.commit(repoPath, commitMessage, context)
                         commitMessage = ""
                     }
                 }

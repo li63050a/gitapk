@@ -45,7 +45,8 @@ data class SSHKey(
     val type: String,
     val fingerprint: String,
     val createdTime: String,
-    val content: String
+    val content: String,
+    val hasPassphrase: Boolean = false
 )
 
 data class BatchOperationResult(

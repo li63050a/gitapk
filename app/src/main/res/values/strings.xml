@@ -43,6 +43,7 @@
     <string name="green_bg">浅绿</string>
     <string name="rose_bg">浅粉</string>
     <string name="dark_bg">深黑</string>
+    <string name="custom_bg">自定义背景</string>
     <string name="indigo_accent">靛蓝</string>
     <string name="blue_accent">蓝色</string>
     <string name="teal_accent">青绿</string>
@@ -52,6 +53,7 @@
     <string name="forest_accent">森林绿</string>
     <string name="orange_accent">橙色</string>
     <string name="background_image">自定义背景图</string>
+    <string name="bg_opacity">背景透明度</string>
     <string name="select_image">选择图片</string>
     <string name="clear_image">清除图片</string>
     <string name="batch_operation">批量操作</string>
@@ -67,6 +69,7 @@
     <string name="ssh_key_management">SSH 密钥管理</string>
     <string name="add_ssh_key">添加 SSH 密钥</string>
     <string name="key_name">密钥名称</string>
+    <string name="key_passphrase">密钥口令 (如有)</string>
     <string name="key_content">密钥内容</string>
     <string name="staged_files">已暂存</string>
     <string name="modified_files">已修改</string>
@@ -90,6 +93,14 @@
     <string name="clear_logs">清空日志</string>
     <string name="close">关闭</string>
     <string name="share">分享</string>
+    <string name="log_settings">日志设置</string>
+    <string name="log_max_size">单个日志最大大小 (KB，0=不限制)</string>
+    <string name="log_max_count">日志文件最大数量 (0=不限制)</string>
+    <string name="select_all">全选</string>
+    <string name="clear_custom_bg">清除背景</string>
+    <string name="confirm_delete_selected">确定删除选中的 %d 个崩溃日志吗？</string>
+    <string name="log_settings_saved">日志设置已保存</string>
+    <string name="custom_bg_set">已设置自定义背景</string>
     <string name="back">返回</string>
     <string name="all">全部</string>
     <string name="debug_level">调试</string>
@@ -114,4 +125,47 @@
     <string name="no_repos">暂无仓库</string>
     <string name="no_repos_hint">点击下方按钮添加新仓库</string>
     <string name="repos">个仓库</string>
+    <string name="git_config">Git 配置</string>
+    <string name="user_config">用户配置</string>
+    <string name="remote_config">远程配置</string>
+    <string name="actions">操作</string>
+    <string name="user_name">用户名</string>
+    <string name="user_email">邮箱</string>
+    <string name="save">保存</string>
+    <string name="saved">已保存</string>
+    <string name="no_remotes">暂无远程仓库</string>
+    <string name="add_remote">添加远程</string>
+    <string name="edit_remote">编辑远程</string>
+    <string name="remote_name">远程名称 (如 origin)</string>
+    <string name="remote_url">远程地址 (如 git@github.com:user/repo.git)</string>
+    <string name="open_folder">打开文件夹</string>
+    <string name="view_logs">查看日志</string>
+    <string name="select_folder">选择文件夹</string>
+    <string name="parent_dir">上级目录</string>
+    <string name="pick_folder">从文件管理器选择文件夹</string>
+    <string name="clone_failed_need_config">克隆成功！请设置用户名、邮箱和远程地址</string>
+    <string name="init_failed_need_config">初始化成功！请设置用户名、邮箱和远程地址</string>
+    <string name="storage_permission">存储权限</string>
+    <string name="normal_storage_permission">普通存储权限</string>
+    <string name="all_files_access_permission">管理所有文件权限</string>
+    <string name="all_files_access_hint">Android 11 及以上需要此权限才能读取/写入设备上的任意 Git 仓库目录</string>
+    <string name="granted">已授权</string>
+    <string name="not_granted">未授权</string>
+    <string name="request_permission">申请</string>
+    <string name="recheck">重新检查</string>
+    <string name="global_git_user">全局 Git 用户</string>
+    <string name="global_git_user_hint">未单独设置仓库用户时，将作为提交默认身份（可在仓库配置中覆盖）</string>
+    <string name="no_files">该仓库下没有文件</string>
+    <string name="quick_locations">快速选择位置</string>
+    <string name="app_dir">应用目录（免授权）</string>
+    <string name="documents">文档</string>
+    <string name="download">下载</string>
+    <string name="init_no_remote_hint">创建仓库后可在仓库“配置”中添加远程地址</string>
+    <string name="developer">开发者信息</string>
+    <string name="bilibili">B站</string>
+    <string name="email">邮箱</string>
+    <string name="github_repo">GitHub 仓库地址</string>
+    <string name="github_repo_url">https://github.com/li63050a/gitapk</string>
+    <string name="github_repo_hint">本应用的开源仓库地址（点击在浏览器打开）</string>
+    <string name="no_remote_set">未选择仓库或未配置远程</string>
 </resources>

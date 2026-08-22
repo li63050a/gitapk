@@ -10,6 +10,16 @@ android {
     namespace = "com.git.app"
     compileSdk = 34
 
+    packaging {
+        resources {
+            excludes += setOf(
+                "/OSGI-INF/l10n/plugin.properties",
+                "/OSGI-INF/*.xml",
+                "/META-INF/MANIFEST.MF"
+            )
+        }
+    }
+
     defaultConfig {
         applicationId = "com.git.app"
         minSdk = 23
@@ -38,6 +48,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -88,6 +99,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
+    implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

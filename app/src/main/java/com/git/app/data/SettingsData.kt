@@ -14,6 +14,7 @@ enum class BgPreset(val raw: String, val light: String, val dark: String, val la
     GREEN("green", "#EDF5F0", "#0E1F18", R.string.green_bg),
     ROSE("rose", "#FAF0F2", "#231419", R.string.rose_bg),
     DARK("dark", "#1E1E1E", "#0A0A0A", R.string.dark_bg),
+    CUSTOM("custom", "#FAFAFA", "#121212", R.string.custom_bg),
 }
 
 enum class AccentPreset(val raw: String, val light: String, val dark: String, val labelRes: Int) {
@@ -38,5 +39,10 @@ data class UiSettings(
     val bgPreset: BgPreset = BgPreset.DEFAULT,
     val accentPreset: AccentPreset = AccentPreset.INDIGO,
     val language: AppLanguage = AppLanguage.ZH,
-    val customBgPath: String? = null
+    val customBgPath: String? = null,
+    val bgAlpha: Float = 0.3f,
+    val gitUserName: String = "",
+    val gitUserEmail: String = "",
+    val logMaxBytes: Long = 0L,
+    val logMaxFiles: Int = 0
 )

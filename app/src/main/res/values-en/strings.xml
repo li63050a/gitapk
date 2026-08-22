@@ -43,6 +43,7 @@
     <string name="green_bg">Green</string>
     <string name="rose_bg">Rose</string>
     <string name="dark_bg">Dark</string>
+    <string name="custom_bg">Custom Background</string>
     <string name="indigo_accent">Indigo</string>
     <string name="blue_accent">Blue</string>
     <string name="teal_accent">Teal</string>
@@ -52,6 +53,7 @@
     <string name="forest_accent">Forest</string>
     <string name="orange_accent">Orange</string>
     <string name="background_image">Custom Background</string>
+    <string name="bg_opacity">Background Opacity</string>
     <string name="select_image">Select Image</string>
     <string name="clear_image">Clear Image</string>
     <string name="batch_operation">Batch Operation</string>
@@ -67,6 +69,7 @@
     <string name="ssh_key_management">SSH Key Management</string>
     <string name="add_ssh_key">Add SSH Key</string>
     <string name="key_name">Key Name</string>
+    <string name="key_passphrase">Key Passphrase (if any)</string>
     <string name="key_content">Key Content</string>
     <string name="staged_files">Staged</string>
     <string name="modified_files">Modified</string>
@@ -90,6 +93,14 @@
     <string name="clear_logs">Clear Logs</string>
     <string name="close">Close</string>
     <string name="share">Share</string>
+    <string name="log_settings">Log Settings</string>
+    <string name="log_max_size">Max size per log file (KB, 0=unlimited)</string>
+    <string name="log_max_count">Max number of log files (0=unlimited)</string>
+    <string name="select_all">Select All</string>
+    <string name="clear_custom_bg">Clear Background</string>
+    <string name="confirm_delete_selected">Delete the %d selected crash logs?</string>
+    <string name="log_settings_saved">Log settings saved</string>
+    <string name="custom_bg_set">Custom background set</string>
     <string name="back">Back</string>
     <string name="all">All</string>
     <string name="debug_level">Debug</string>
@@ -114,4 +125,47 @@
     <string name="no_repos">No repositories</string>
     <string name="no_repos_hint">Tap the button below to add a new repository</string>
     <string name="repos">repositories</string>
+    <string name="git_config">Git Config</string>
+    <string name="user_config">User Config</string>
+    <string name="remote_config">Remote Config</string>
+    <string name="actions">Actions</string>
+    <string name="user_name">Username</string>
+    <string name="user_email">Email</string>
+    <string name="save">Save</string>
+    <string name="saved">Saved</string>
+    <string name="no_remotes">No remotes configured</string>
+    <string name="add_remote">Add Remote</string>
+    <string name="edit_remote">Edit Remote</string>
+    <string name="remote_name">Remote Name (e.g., origin)</string>
+    <string name="remote_url">Remote URL (e.g., git@github.com:user/repo.git)</string>
+    <string name="open_folder">Open Folder</string>
+    <string name="view_logs">View Logs</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="parent_dir">Parent Directory</string>
+    <string name="pick_folder">Pick folder from file manager</string>
+    <string name="clone_failed_need_config">Clone successful! Please configure username, email and remote URL</string>
+    <string name="init_failed_need_config">Init successful! Please configure username, email and remote URL</string>
+    <string name="storage_permission">Storage Permission</string>
+    <string name="normal_storage_permission">Standard storage permission</string>
+    <string name="all_files_access_permission">All files access permission</string>
+    <string name="all_files_access_hint">On Android 11+ this permission is required to read/write Git repositories anywhere on the device</string>
+    <string name="granted">Granted</string>
+    <string name="not_granted">Not granted</string>
+    <string name="request_permission">Grant</string>
+    <string name="recheck">Re-check</string>
+    <string name="global_git_user">Global Git User</string>
+    <string name="global_git_user_hint">Used as the default commit identity when a repository has no own user configured (can be overridden per repository)</string>
+    <string name="no_files">No files in this repository</string>
+    <string name="quick_locations">Quick pick location</string>
+    <string name="app_dir">App directory (no permission)</string>
+    <string name="documents">Documents</string>
+    <string name="download">Download</string>
+    <string name="init_no_remote_hint">Add a remote later in the repository \"Config\" tab after creating</string>
+    <string name="developer">Developer Info</string>
+    <string name="bilibili">Bilibili</string>
+    <string name="email">Email</string>
+    <string name="github_repo">GitHub Repository</string>
+    <string name="github_repo_url">https://github.com/li63050a/gitapk</string>
+    <string name="github_repo_hint">The open-source repository of this app (tap to open in browser)</string>
+    <string name="no_remote_set">No repository selected or no remote configured</string>
 </resources>

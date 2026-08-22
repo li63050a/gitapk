@@ -1,11 +1,14 @@
 package com.git.app.vm
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.git.app.data.SettingsRepository
 import com.git.app.git.GitExecutor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class StageUiState(
@@ -64,10 +67,20 @@ class StageViewModel : ViewModel() {
         }
     }
 
-    fun commit(repoPath: String, message: String) {
+    fun commit(repoPath: String, message: String, context: Context) {
         viewModelScope.launch {
             if (message.isBlank()) return@launch
-            gitExecutor.commit(repoPath, message)
+            // Use the repository-level identity if set, otherwise fall back to the
+            // app-wide global default configured in Settings.
+            val name = gitExecutor.getConfig(repoPath, "user.name").data
+            val email = gitExecutor.getConfig(repoPath, "user.email").data
+            val (authorName, authorEmail) = if (!name.isNullOrBlank() && !email.isNullOrBlank()) {
+                name to email
+            } else {
+                val s = SettingsRepository.getSettings(context).first()
+                s.gitUserName to s.gitUserEmail
+            }
+            gitExecutor.commit(repoPath, message, authorName, authorEmail)
             loadStatus(repoPath)
         }
     }

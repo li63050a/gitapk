@@ -3,8 +3,10 @@ package com.git.app.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Commit
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -19,6 +21,8 @@ import com.git.app.R
 import com.git.app.data.RepoManager
 import com.git.app.ui.screen.branch.BranchScreen
 import com.git.app.ui.screen.commit.CommitScreen
+import com.git.app.ui.screen.file.FileScreen
+import com.git.app.ui.screen.GitConfigScreen
 import com.git.app.ui.screen.remote.RemoteScreen
 import com.git.app.ui.screen.settings.SettingsScreen
 import com.git.app.ui.screen.ssh.SSHScreen
@@ -38,8 +42,10 @@ fun RepoDetailScreen(
     val tabs = listOf(
         TabItem(stringResource(id = R.string.commits), Icons.Default.Commit),
         TabItem(stringResource(id = R.string.stage), Icons.Default.Code),
+        TabItem(stringResource(id = R.string.files), Icons.Default.Edit),
         TabItem(stringResource(id = R.string.branches), Icons.Default.Sync),
         TabItem(stringResource(id = R.string.remote), Icons.Default.Key),
+        TabItem(stringResource(id = R.string.git_config), Icons.Default.Build),
         TabItem(stringResource(id = R.string.settings), Icons.Default.Settings)
     )
 
@@ -117,9 +123,11 @@ fun RepoDetailScreen(
             when (selectedTab) {
                 0 -> CommitContent(repoPath = repoPath)
                 1 -> StageContent(repoPath = repoPath)
-                2 -> BranchContent(repoPath = repoPath)
-                3 -> RemoteContent(repoPath = repoPath)
-                4 -> SettingsContent()
+                2 -> FileContent(repoPath = repoPath)
+                3 -> BranchContent(repoPath = repoPath)
+                4 -> RemoteContent(repoPath = repoPath)
+                5 -> GitConfigContent(repoPath = repoPath)
+                6 -> SettingsContent()
             }
         }
     }
@@ -150,4 +158,14 @@ fun RemoteContent(repoPath: String) {
 @Composable
 fun SettingsContent() {
     SettingsScreen()
+}
+
+@Composable
+fun FileContent(repoPath: String) {
+    FileScreen(repoPath = repoPath)
+}
+
+@Composable
+fun GitConfigContent(repoPath: String) {
+    GitConfigScreen(repoPath = repoPath, onBack = {}, onViewLogs = {})
 }

@@ -2,27 +2,25 @@ package com.git.app.ui.theme
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import com.git.app.R
 import com.git.app.data.AccentPreset
 import com.git.app.data.BgPreset
-import com.git.app.data.SettingsRepository
 import com.git.app.data.ThemeMode
+import com.git.app.data.UiSettings
 import java.io.File
 
 private fun mix(base: Color, target: Color, fraction: Float): Color {
@@ -86,23 +84,26 @@ private fun presetScheme(bg: BgPreset, accent: AccentPreset, dark: Boolean): Col
 
 @Composable
 fun GitAppTheme(
+    settings: UiSettings,
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val context = LocalContext.current
-    val settings by SettingsRepository.getSettings(context).collectAsState(
-        initial = com.git.app.data.UiSettings()
-    )
-    
     val themeMode = when (settings.themeMode) {
         ThemeMode.SYSTEM -> darkTheme
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    
-    val colorScheme = presetScheme(settings.bgPreset, settings.accentPreset, themeMode)
-    
-    if (settings.customBgPath.isNullOrEmpty()) {
+
+    val customActive = settings.bgPreset == BgPreset.CUSTOM && !settings.customBgPath.isNullOrEmpty()
+    val basePreset = if (settings.bgPreset == BgPreset.CUSTOM) BgPreset.DEFAULT else settings.bgPreset
+    val baseScheme = presetScheme(basePreset, settings.accentPreset, themeMode)
+    val colorScheme = if (customActive) {
+        baseScheme.copy(background = Color.Transparent, surface = Color.Transparent)
+    } else {
+        baseScheme
+    }
+
+    if (!customActive) {
         MaterialTheme(
             colorScheme = colorScheme,
             content = content
@@ -113,10 +114,13 @@ fun GitAppTheme(
         } catch (e: Exception) {
             null
         }
-        
+        val scrim = baseScheme.background.copy(
+            alpha = (1f - settings.bgAlpha * 0.7f).coerceIn(0.35f, 0.92f)
+        )
+
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = colorScheme.background
+            color = Color.Transparent
         ) {
             if (bitmap != null) {
                 Image(
@@ -124,11 +128,13 @@ fun GitAppTheme(
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
-                    alpha = 0.3f
+                    alpha = settings.bgAlpha.coerceIn(0f, 1f)
                 )
             }
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(scrim)
             ) {
                 MaterialTheme(
                     colorScheme = colorScheme,

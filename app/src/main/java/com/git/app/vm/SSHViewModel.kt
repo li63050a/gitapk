@@ -32,9 +32,9 @@ class SSHViewModel : ViewModel() {
         }
     }
 
-    fun addKey(name: String, content: String) {
+    fun addKey(name: String, content: String, passphrase: String = "") {
         viewModelScope.launch {
-            val result = gitExecutor.addSSHKey(name, content)
+            val result = gitExecutor.addSSHKey(name, content, passphrase)
             if (result.success) loadKeys()
         }
     }

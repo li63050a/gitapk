@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Refresh
@@ -20,7 +21,7 @@ import com.git.app.vm.SSHViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SSHScreen() {
+fun SSHScreen(onBack: () -> Unit = {}) {
     val viewModel: SSHViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -28,6 +29,7 @@ fun SSHScreen() {
     var showAddDialog by remember { mutableStateOf(false) }
     var keyName by remember { mutableStateOf("") }
     var keyContent by remember { mutableStateOf("") }
+    var keyPassphrase by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.loadKeys()
@@ -37,6 +39,11 @@ fun SSHScreen() {
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.ssh_keys)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.loadKeys() }) {
                         Icon(Icons.Default.Refresh, contentDescription = null)
@@ -92,11 +99,16 @@ fun SSHScreen() {
     if (showAddDialog) {
         AddSSHKeyDialog(
             onDismiss = { showAddDialog = false },
-            onAdd = { name, content -> viewModel.addKey(name, content); showAddDialog = false },
+            onAdd = { name, content, passphrase ->
+                viewModel.addKey(name, content, passphrase)
+                showAddDialog = false
+            },
             keyName = keyName,
             onKeyNameChange = { keyName = it },
             keyContent = keyContent,
-            onKeyContentChange = { keyContent = it }
+            onKeyContentChange = { keyContent = it },
+            keyPassphrase = keyPassphrase,
+            onKeyPassphraseChange = { keyPassphrase = it }
         )
     }
 }
@@ -112,11 +124,11 @@ fun SSHKeyCard(key: com.git.app.git.SSHKey, onDelete: () -> Unit) {
             ) {
                 Column {
                     Text(text = key.name, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = "${key.type} · ${key.createdTime}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Text(
+                    text = "${key.type} · ${key.createdTime}" + if (key.hasPassphrase) " · 🔒" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
@@ -136,11 +148,13 @@ fun SSHKeyCard(key: com.git.app.git.SSHKey, onDelete: () -> Unit) {
 @Composable
 fun AddSSHKeyDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, String) -> Unit,
+    onAdd: (String, String, String) -> Unit,
     keyName: String,
     onKeyNameChange: (String) -> Unit,
     keyContent: String,
-    onKeyContentChange: (String) -> Unit
+    onKeyContentChange: (String) -> Unit,
+    keyPassphrase: String,
+    onKeyPassphraseChange: (String) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -161,11 +175,19 @@ fun AddSSHKeyDialog(
                     modifier = Modifier.fillMaxWidth().height(150.dp),
                     maxLines = 10
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = keyPassphrase,
+                    onValueChange = onKeyPassphraseChange,
+                    label = { Text(stringResource(id = R.string.key_passphrase)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
             }
         },
         confirmButton = {
             Button(
-                onClick = { if (keyName.isNotEmpty() && keyContent.isNotEmpty()) onAdd(keyName, keyContent) },
+                onClick = { if (keyName.isNotEmpty() && keyContent.isNotEmpty()) onAdd(keyName, keyContent, keyPassphrase) },
                 enabled = keyName.isNotEmpty() && keyContent.isNotEmpty()
             ) {
                 Text(stringResource(id = R.string.add))

@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -143,6 +145,14 @@ fun LogScreen(onBack: () -> Unit) {
         crashLogs = withContext(Dispatchers.IO) { scanCrashLogs() }
     }
 
+    fun refreshCrashLogs() {
+        scope.launch { crashLogs = withContext(Dispatchers.IO) { scanCrashLogs() } }
+    }
+
+    var selectionMode by remember { mutableStateOf(false) }
+    var selectedCrashes by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     var showClearDialog by remember { mutableStateOf(false) }
     var crashDialog by remember { mutableStateOf<CrashLogInfo?>(null) }
     var crashContent by remember { mutableStateOf<String?>(null) }
@@ -204,11 +214,32 @@ fun LogScreen(onBack: () -> Unit) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { exportCurrent() }) {
-                        Icon(Icons.Filled.Share, stringResource(id = R.string.share))
-                    }
-                    IconButton(onClick = { showClearDialog = true }) {
-                        Icon(Icons.Filled.DeleteSweep, stringResource(id = R.string.clear_logs))
+                    if (selectionMode) {
+                        IconButton(
+                            onClick = { showDeleteDialog = selectedCrashes.isNotEmpty() },
+                            enabled = selectedCrashes.isNotEmpty()
+                        ) {
+                            Icon(Icons.Filled.DeleteSweep, stringResource(id = R.string.delete))
+                        }
+                        TextButton(onClick = {
+                            val all = crashLogs.map { it.name }.toSet()
+                            selectedCrashes = if (selectedCrashes == all) emptySet() else all
+                        }) {
+                            Text(stringResource(id = R.string.select_all))
+                        }
+                        IconButton(onClick = {
+                            selectionMode = false
+                            selectedCrashes = emptySet()
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.cancel))
+                        }
+                    } else {
+                        IconButton(onClick = { exportCurrent() }) {
+                            Icon(Icons.Filled.Share, stringResource(id = R.string.share))
+                        }
+                        IconButton(onClick = { showClearDialog = true }) {
+                            Icon(Icons.Filled.DeleteSweep, stringResource(id = R.string.clear_logs))
+                        }
                     }
                 }
             )
@@ -248,7 +279,22 @@ fun LogScreen(onBack: () -> Unit) {
                         )
                     }
                     itemsIndexed(crashLogs, key = { i, c -> c.name.ifBlank { "crash_$i" } }) { _, info ->
-                        CrashCard(info) { crashDialog = info }
+                        val selected = selectedCrashes.contains(info.name)
+                        CrashCard(
+                            info = info,
+                            selected = selected,
+                            onClick = {
+                                if (selectionMode) {
+                                    selectedCrashes = if (selected) selectedCrashes - info.name else selectedCrashes + info.name
+                                } else {
+                                    crashDialog = info
+                                }
+                            },
+                            onLongClick = {
+                                selectionMode = true
+                                selectedCrashes = selectedCrashes + info.name
+                            }
+                        )
                     }
                     item(key = "crash_divider") {
                         HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -345,9 +391,14 @@ fun LogScreen(onBack: () -> Unit) {
             },
             confirmButton = {
                 TextButton(onClick = {
+                    val info = crashDialog
                     crashDialog = null
                     crashContent = null
-                }) { Text(stringResource(id = R.string.close)) }
+                    info?.let {
+                        Log.deleteCrash(it.file)
+                        refreshCrashLogs()
+                    }
+                }) { Text(stringResource(id = R.string.delete)) }
             },
             dismissButton = {
                 TextButton(onClick = {
@@ -360,19 +411,79 @@ fun LogScreen(onBack: () -> Unit) {
             }
         )
     }
+
+    if (showDeleteDialog) {
+        val selectedList = crashLogs.filter { selectedCrashes.contains(it.name) }
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(id = R.string.delete)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    if (selectedList.isEmpty()) {
+                        Text(stringResource(id = R.string.no_logs))
+                    } else {
+                        selectedList.forEach { info ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedCrashes = selectedCrashes - info.name }
+                            ) {
+                                Text(
+                                    "✓",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                Text(
+                                    info.name,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedList.forEach { Log.deleteCrash(it.file) }
+                    selectedCrashes = emptySet()
+                    selectionMode = false
+                    showDeleteDialog = false
+                    refreshCrashLogs()
+                }) { Text(stringResource(id = R.string.delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(id = R.string.cancel)) }
+            }
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CrashCard(info: CrashLogInfo, onClick: () -> Unit) {
+private fun CrashCard(
+    info: CrashLogInfo,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     Card(
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.errorContainer
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
